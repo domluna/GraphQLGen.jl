@@ -36,21 +36,13 @@ function tojl(doc::Document, scalar_type_map::Dict)
     functions = Expr[]
 
     for d in doc
-        if d isa ObjectTypeDefinition && jltype(d.name) in schema_types
+        if d isa TypeDefinition && d.type isa ObjectTypeDefinition && jltype(d.type.name) in schema_types
             jlfuncs = jlfunction(d)
             for f in jlfuncs
                 push!(functions, f)
             end
         else
-            jlt = if d isa ScalarTypeDefinition
-                jltype(d, scalar_type_map)
-            elseif d isa ObjectTypeDefinition
-                jltype(d, revisited_graph)
-            elseif d isa InputObjectTypeDefinition
-                jltype(d, revisited_graph)
-            else
-                jltype(d)
-            end
+            jlt = jltype(d, revisited_graph, scalar_type_map)
             if !isnothing(jlt)
                 push!(types, jlt)
             end
@@ -62,6 +54,21 @@ end
 tojl(doc::Document) = tojl(doc, Dict())
 
 jltype(x) = nothing
+
+function jltype(t::TypeDefinition, revisited_graph::Dict{Symbol,Set{Symbol}}, scalar_type_map::Dict)
+    docstr = t.description
+    typ = t.type
+    jlt = if typ isa ScalarTypeDefinition
+        jltype(typ, scalar_type_map)
+    elseif typ isa ObjectTypeDefinition
+        jltype(typ, revisited_graph)
+    elseif typ isa InputObjectTypeDefinition
+        jltype(typ, revisited_graph)
+    else
+        jltype(typ)
+    end
+    return jlt
+end
 
 function jltype(name::Symbol, fields::Vector{Expr}, graph::Dict{Symbol,Set{Symbol}})
     sort!(fields, lt = (e1, e2) -> e1.head === :(::) && e2.head === :(=))
@@ -100,6 +107,8 @@ function jltype(t::ObjectTypeDefinition, graph::Dict{Symbol,Set{Symbol}})
 
     return jltype(name, fields, graph)
 end
+
+jlfunction(t::TypeDefinition) = jlfunction(t.type)
 
 function jlfunction(t::ObjectTypeDefinition)
     name = jltype(t.name)

@@ -6,9 +6,12 @@ function dagify(doc::Document)
 
     # list of user defined types
     for (i, d) in enumerate(doc)
-        if d isa ObjectTypeDefinition ||
-           d isa InputObjectTypeDefinition ||
-           d isa UnionTypeDefinition
+        !(d isa TypeDefinition) && continue
+
+        typ = d.type
+        if typ isa ObjectTypeDefinition ||
+           typ isa InputObjectTypeDefinition ||
+           typ isa UnionTypeDefinition
             n = node_id(d)
             g[n] = Set{Symbol}()
             node_ids[n] = i
@@ -18,7 +21,7 @@ function dagify(doc::Document)
                 (e in BUILTIN_GRAPHQL_TYPES) && continue
                 push!(g[n], e)
             end
-        elseif d isa ScalarTypeDefinition || d isa EnumTypeDefinition
+        elseif typ isa ScalarTypeDefinition || typ isa EnumTypeDefinition
             # toplevel
             push!(sorted_definitions, d)
         end
@@ -99,6 +102,7 @@ function visit!(
 end
 
 collect_edges(t) = Symbol[]
+collect_edges(t::TypeDefinition) = collect_edges(t.type)
 
 function collect_edges(t::ObjectTypeDefinition)
     map(t.fields_definition) do fd
@@ -118,6 +122,8 @@ function collect_edges(t::UnionTypeDefinition)
     end
 end
 
+
+node_id(x::TypeDefinition) = node_id(x.type)
 node_id(x::ObjectTypeDefinition) = node_id(x.name)
 node_id(x::InputObjectTypeDefinition) = node_id(x.name)
 node_id(x::UnionTypeDefinition) = node_id(x.name)

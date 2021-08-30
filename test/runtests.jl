@@ -117,7 +117,7 @@ end
     @test exprs[7] == :(const U = Union{U1,A})
 end
 
-@testset "cycle warning" begin
+@testset "cycles" begin
     str = """
     type C {
        field1: B

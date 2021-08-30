@@ -49,6 +49,11 @@ struct SelectionSet <: GraphQLNode
     selections::Vector{Any}
 end
 
+struct TypeDefinition <: GraphQLNode
+    description::Any
+    type::Any
+end
+
 struct Argument <: GraphQLNode
     name::Any
     value::Any
@@ -129,7 +134,6 @@ struct SchemaDefinition <: GraphQLNode
 end
 
 struct ScalarTypeDefinition <: GraphQLNode
-    description::Any
     name::Any
     directives::Vector{Directive}
 end
@@ -174,7 +178,6 @@ struct EnumValuesDefinition <: GraphQLNode
 end
 
 struct EnumTypeDefinition <: GraphQLNode
-    description::Any
     name::Any
     directives::Vector{Directive}
     enums::Vector{EnumValueDefinition}
@@ -185,7 +188,6 @@ struct InputFieldsDefinition <: GraphQLNode
 end
 
 struct InputObjectTypeDefinition <: GraphQLNode
-    description::Any
     name::Any
     directives::Vector{Directive}
     fields::Vector{InputValueDefinition}
@@ -199,21 +201,18 @@ struct DirectiveDefinition <: GraphQLNode
 end
 
 struct UnionTypeDefinition <: GraphQLNode
-    description::Any
     name::Any
     directives::Vector{Directive}
     types::Vector{NamedType}
 end
 
 struct InterfaceTypeDefinition <: GraphQLNode
-    description::Any
     name::Any
     directives::Vector{Directive}
     fields_definition::Vector{FieldDefinition}
 end
 
 struct ObjectTypeDefinition <: GraphQLNode
-    description::Any
     name::Any
     implements_interfaces::Any
     directives::Vector{Directive}
