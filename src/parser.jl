@@ -9,10 +9,10 @@ function Base.convert(::Type{String}, t::RBNF.Token{:str})
     startswith(t.str, "\"\"\"") ? String(t.str[4:end-3]) : String(t.str[2:end-1])
 end
 function Base.convert(::Type{String}, t::RBNF.Token{:single_quote_string_value})
-    String(t.str[2:end-1])
+    string(t.str[2:end-1])
 end
 function Base.convert(::Type{String}, t::RBNF.Token{:triple_quote_string_value})
-    String(t.str[4:end-3])
+    string(t.str[4:end-3])
 end
 
 RBNF.@parser GQL begin

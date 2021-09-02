@@ -6,6 +6,7 @@ using Expronicon
     str = """
     scalar A
     scalar B
+    scalar C
     """
     scalar_type_map = Dict(:A => :Point, :B => Vector{UInt8})
     types, _ = GraphQLGen.tojl(GraphQLGen.parse(str), scalar_type_map)
@@ -14,6 +15,7 @@ using Expronicon
     @test exprs[2].args[1].head == :(=)
     @test exprs[2].args[1].args[1] == :(B)
     @test exprs[2].args[1].args[2] == Vector{UInt8}
+    @test exprs[3] == :(const C = Any)
 end
 
 @testset "enum" begin

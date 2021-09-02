@@ -56,9 +56,9 @@ tojl(doc::Document) = tojl(doc, Dict())
 jltype(x) = nothing
 
 function jltype(t::TypeDefinition, revisited_graph::Dict{Symbol,Set{Symbol}}, scalar_type_map::Dict)
-    docstr = t.description
+    docstr = isnothing(something(t.description)) ? "" : jltype(t.description) 
     typ = t.type
-    jlt = if typ isa ScalarTypeDefinition
+    ex = if typ isa ScalarTypeDefinition
         jltype(typ, scalar_type_map)
     elseif typ isa ObjectTypeDefinition
         jltype(typ, revisited_graph)
@@ -67,7 +67,21 @@ function jltype(t::TypeDefinition, revisited_graph::Dict{Symbol,Set{Symbol}}, sc
     else
         jltype(typ)
     end
-    return jlt
+
+    docstr == "" && return ex
+    docstr = strip(docstr)
+
+    ex = if typ isa ScalarTypeDefinition || typ isa UnionTypeDefinition
+        :(Core.@doc $docstr $ex)
+    else
+        quote
+            $("\"\"\"\n$docstr\n\"\"\"")
+            # ignore initial LineNumberNode
+            $(ex.args[2:end]...)
+        end
+    end
+
+    return ex
 end
 
 function jltype(name::Symbol, fields::Vector{Expr}, graph::Dict{Symbol,Set{Symbol}})
@@ -284,11 +298,9 @@ function jltype(t::ListType)
 end
 jltype(t::DefaultValue) = jltype(t.value)
 jltype(t::RBNF.Token) = Symbol(t.str)
-jltype(t::RBNF.Token{:single_quote_string_value}) = t.str
-jltype(t::RBNF.Token{:triple_quote_string_value}) = t.str
-function jltype(t::Some)
-    jltype(something(t))
-end
+jltype(t::RBNF.Token{:single_quote_string_value}) = convert(String, t)
+jltype(t::RBNF.Token{:triple_quote_string_value}) = convert(String, t)
+jltype(t::Some) = jltype(something(t))
 
 """
 Returns the string GraphQL representation of the parsed GraphQL type.
