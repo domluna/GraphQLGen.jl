@@ -122,7 +122,6 @@ function collect_edges(t::UnionTypeDefinition)
     end
 end
 
-
 node_id(x::TypeDefinition) = node_id(x.type)
 node_id(x::ObjectTypeDefinition) = node_id(x.name)
 node_id(x::InputObjectTypeDefinition) = node_id(x.name)

@@ -135,7 +135,7 @@ RBNF.@parser GQL begin
             union_type_definition |
             enum_type_definition |
             input_object_type_definition
-        )
+        ),
     ]
 
     # TODO: extensions might not work
@@ -210,12 +210,8 @@ RBNF.@parser GQL begin
         ["extend", "interface", name, directives]
     )
 
-    union_type_definition::UnionTypeDefinition := [
-        "union",
-        name = name,
-        directives = directives.?,
-        types = union_member_types.?,
-    ]
+    union_type_definition::UnionTypeDefinition :=
+        ["union", name = name, directives = directives.?, types = union_member_types.?]
 
     union_member_types = @direct_recur begin
         init = [['=', '|'.?, named_type] % (x -> x[3])]
@@ -227,12 +223,8 @@ RBNF.@parser GQL begin
         ["extend", "union", name, directives]
     )
 
-    enum_type_definition::EnumTypeDefinition := [
-        "enum",
-        name = name,
-        directives = directives.?,
-        enums = enum_values_definition.?,
-    ]
+    enum_type_definition::EnumTypeDefinition :=
+        ["enum", name = name, directives = directives.?, enums = enum_values_definition.?]
 
     enum_values_definition::EnumValuesDefinition :=
         ['{', values = enum_value_definition{*}, '}']
