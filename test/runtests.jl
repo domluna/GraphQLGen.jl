@@ -215,4 +215,68 @@ using Expronicon
             @test f.kwargs == Any[]
         end
     end
+
+
+    @testset "docstrings" begin
+        @testset "types" begin
+            str = """
+
+            \"""The date a film was released.\"""
+            scalar ReleaseDate
+
+            \"""A single film.\"""
+            type Film implements Node {
+              \"""Title of this film.\"""
+              title: String
+
+              \"""Genre of the film.\"""
+              genre: Genre
+
+              \"""Date the film was released.\"""
+              date: ReleaseDate
+            }
+
+            type TelevisionSeries implements Node {
+              \"""Title of this tv show.\"""
+              title: String
+
+              \"""Genre of the tv show.\"""
+              genre: Genre
+
+              \"""Date the tv show was aired.\"""
+              date: ReleaseDate
+
+              \"""Series ID of tv show.\"""
+              seriesId: Int
+              \"""Episode ID of tv show.\"""
+              episodeId: Year
+            }
+
+            \"""Input for a film.\"""
+            input FilmInput {
+              \"""The title of this film.\"""
+              title: String
+            }
+
+            \"""Genre of a film.\"""
+            enum Genre {
+              \"""An action film.\"""
+              ACTION
+              \"""A comedy film.\"""
+              COMEDY
+              \"""A science fiction film.\"""
+              SCIFI
+            }
+
+            \"""Filmed on camera.\"""
+            union CameraUsed = Film | TelevisionSeries
+            """
+            types, _ = GraphQLGen.tojl(GraphQLGen.parse(str))
+            exprs = map(GraphQLGen.ExprPrettify.prettify, types)
+        end
+
+        @testset "functions" begin
+        end
+    end
+
 end
