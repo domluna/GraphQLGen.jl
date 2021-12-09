@@ -62,7 +62,6 @@ function jltype(
     revisited_graph::Dict{Symbol,Set{Symbol}},
     scalar_type_map::Dict,
 )
-    docstr = isnothing(something(t.description)) ? "" : jltype(t.description)
     typ = t.type
     ex = if typ isa ScalarTypeDefinition
         jltype(typ, scalar_type_map)
@@ -74,6 +73,7 @@ function jltype(
         jltype(typ)
     end
 
+    docstr = isnothing(something(t.description)) ? "" : jltype(t.description)
     docstr == "" && return ex
     docstr = strip(docstr)
 
@@ -231,8 +231,12 @@ function jlfunction(t::FieldDefinition, stype::Symbol)
         return (; query, variables)
     end
 
-    jlf = JLFunction(; name = name, args = args, kwargs = kwargs, body = body)
-    #= @info "" args kwargs funcsigs jlf =#
+    doc::Union{Nothing,String} = if isnothing(something(t.description))
+        nothing
+    else
+        strip(jltype(t.description))
+    end
+    jlf = JLFunction(; name, args, kwargs, body, doc)
 
     quote
         struct $name
