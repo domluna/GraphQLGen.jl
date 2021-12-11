@@ -231,9 +231,6 @@ using Expronicon
 
               \"""Genre of the film.\"""
               genre: Genre
-
-              \"""Date the film was released.\"""
-              date: ReleaseDate
             }
 
             type TelevisionSeries implements Node {
@@ -242,20 +239,14 @@ using Expronicon
 
               \"""Genre of the tv show.\"""
               genre: Genre
-
-              \"""Date the tv show was aired.\"""
-              date: ReleaseDate
-
-              \"""Series ID of tv show.\"""
-              seriesId: Int
-              \"""Episode ID of tv show.\"""
-              episodeId: Year
             }
 
             \"""Input for a film.\"""
             input FilmInput {
               \"""The title of this film.\"""
-              title: String
+              title: String!
+              \"""Genre of the film.\"""
+              genre: Genre!
             }
 
             \"""Genre of a film.\"""
@@ -264,8 +255,6 @@ using Expronicon
               ACTION
               \"""A comedy film.\"""
               COMEDY
-              \"""A science fiction film.\"""
-              SCIFI
             }
 
             \"""Filmed on camera.\"""
@@ -273,9 +262,63 @@ using Expronicon
             """
             types, _ = GraphQLGen.tojl(GraphQLGen.parse(str))
             exprs = map(GraphQLGen.ExprPrettify.prettify, types)
+
+            @test exprs[1].args[3] == "The date a film was released."
+
+            @test exprs[2].args[3] == "Genre of a film."
+            @test exprs[2].args[4].args[1] == Symbol("@enum")
+            @test exprs[2].args[4].args[3] == :Genre
+            fields = exprs[2].args[4].args[4]
+            @test fields.args[1].args[3] == "An action film."
+            @test fields.args[1].args[4] == :ACTION
+            @test fields.args[2].args[3] == "A comedy film."
+            @test fields.args[2].args[4] == :COMEDY
+
+            st = exprs[3].args[1]
+            @test st.args[2] == :TelevisionSeries
+            fields = st.args[3]
+            @test fields.args[1] == "Title of this tv show."
+            @test fields.args[2] == :(title::Union{String,Missing,Nothing})
+            @test fields.args[3] == "Genre of the tv show."
+            @test fields.args[4] == :(genre::Union{Genre,Missing,Nothing})
+
+            @test exprs[4].args[1] == "\"\"\"\nA single film.\n\"\"\""
+            st = exprs[4].args[2]
+            @test st.args[2] == :Film
+            fields = st.args[3]
+            @test fields.args[1] == "Title of this film."
+            @test fields.args[2] == :(title::Union{String,Missing,Nothing})
+            @test fields.args[3] == "Genre of the film."
+            @test fields.args[4] == :(genre::Union{Genre,Missing,Nothing})
+
+            @test exprs[5].args[3] == "Filmed on camera."
+
+            @test exprs[6].args[1] == "\"\"\"\nInput for a film.\n\"\"\""
+            st = exprs[6].args[2]
+            @test st.args[2] == :FilmInput
+            fields = st.args[3]
+            @test fields.args[1] == "The title of this film."
+            @test fields.args[2] == :(title::String)
+            @test fields.args[3] == "Genre of the film."
+            @test fields.args[4] == :(genre::Genre)
         end
 
         @testset "functions" begin
+            str = """
+            schema {
+              query: Root
+            }
+
+            type Root {
+              "Fetches an object given its ID."
+              node(id: ID!): Node
+            }
+            """
+            _, functions = GraphQLGen.tojl(GraphQLGen.parse(str))
+            exprs = map(GraphQLGen.ExprPrettify.prettify, functions)
+
+            f = JLFunction(exprs[1].args[2])
+            @test f.doc == "Fetches an object given its ID."
         end
     end
 

@@ -77,7 +77,7 @@ function jltype(
     docstr == "" && return ex
     docstr = strip(docstr)
 
-    ex = if typ isa ScalarTypeDefinition || typ isa UnionTypeDefinition
+    ex = if typ isa ScalarTypeDefinition || typ isa UnionTypeDefinition || typ isa EnumTypeDefinition
         :(Core.@doc $docstr $ex)
     else
         quote
@@ -287,6 +287,7 @@ end
 function jltype(t::EnumTypeDefinition)
     name = jltype(t.name)
     enums = map(jltype, t.enums)
+    #= @info "" t.enums enums =#
     ex = quote
         @enum $name begin
             $(enums...)
@@ -296,7 +297,12 @@ function jltype(t::EnumTypeDefinition)
 end
 
 function jltype(t::EnumValueDefinition)
-    jltype(t.value)
+    ex = jltype(t.value)
+    if !isnothing(something(t.description))
+        doc = jltype(t.description)
+        ex = :(Core.@doc $doc $ex)  
+    end
+    return ex
 end
 
 function jltype(t::ScalarTypeDefinition, scalar_type_map::Dict)
