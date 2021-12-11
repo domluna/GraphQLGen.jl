@@ -143,6 +143,12 @@ using Expronicon
         @test exprs[1].args[end].head == :function
         f = JLFunction(exprs[1].args[end])
 
+        st = exprs[1].args[1]
+        fields = st.args[3].args
+        @test fields[1] == :field1
+        @test fields[2] == :(field2::Union{A,Missing,Nothing})
+        @test fields[3] == :field3
+
         funcdef = :(Base.getproperty(t::A, sym::Symbol))
         @test f.name == :(Base.getproperty)
 
@@ -174,7 +180,11 @@ using Expronicon
             _, functions = GraphQLGen.tojl(GraphQLGen.parse(str))
             exprs = map(GraphQLGen.ExprPrettify.prettify, functions)
 
-            f = JLFunction(exprs[1].args[2])
+            @test exprs[1].args[1].args[1] == false # not mutable
+            @test exprs[1].args[1].args[2] == :books
+            @test exprs[1].args[1].args[3] == :(query::String)
+            @test exprs[1].args[2] == "\"\"\"\nthis returns some books\n\"\"\""
+            f = JLFunction(exprs[1].args[3])
             @test f.name == :books
             @test f.args == Any[:(ids::Vector{String})]
             @test f.kwargs == Any[]
@@ -316,8 +326,7 @@ using Expronicon
             _, functions = GraphQLGen.tojl(GraphQLGen.parse(str))
             exprs = map(GraphQLGen.ExprPrettify.prettify, functions)
 
-            f = JLFunction(exprs[1].args[2])
-            @test f.doc == "Fetches an object given its ID."
+            @test exprs[1].args[2] == "\"\"\"\nFetches an object given its ID.\n\"\"\""
         end
     end
 end

@@ -85,8 +85,7 @@ function jltype(
         else
             quote
                 $("\"\"\"\n$docstr\n\"\"\"")
-                # ignore initial LineNumberNode
-                $(ex.args[2:end]...)
+                $(ex.args...)
             end
         end
 
@@ -94,9 +93,9 @@ function jltype(
 end
 
 function jltype(name::Symbol, fields::Vector{JLKwField}, graph::Dict{Symbol,Set{Symbol}})
-    st = JLKwStruct(; ismutable = true, name = name, fields = fields)
-
     ex = if haskey(graph, name)
+        get_property_expr = generate_custom_getproperty!(fields, name, graph[name])
+        st = JLKwStruct(; ismutable = true, name = name, fields = fields)
         quote
             $(codegen_ast(st))
 
@@ -104,9 +103,10 @@ function jltype(name::Symbol, fields::Vector{JLKwField}, graph::Dict{Symbol,Set{
 
             StructTypes.omitempties(::Type{$name}) = true
 
-            $(codegen_ast(generate_custom_getproperty!(fields, name, graph[name])))
+            $(codegen_ast(get_property_expr))
         end
     else
+        st = JLKwStruct(; ismutable = true, name = name, fields = fields)
         quote
             $(codegen_ast(st))
 
@@ -239,15 +239,28 @@ function jlfunction(t::FieldDefinition, stype::Symbol)
     else
         strip(jltype(t.description))
     end
-    jlf = JLFunction(; name, args, kwargs, body, doc)
+    jlf = JLFunction(; name, args, kwargs, body)
 
-    quote
-        struct $name
-            query::String
+    ex = if isnothing(doc)
+        quote
+            struct $name
+                query::String
+            end
+
+            $(codegen_ast(jlf))
         end
+    else
+        quote
+            struct $name
+                query::String
+            end
 
-        $(codegen_ast(jlf))
+            $("\"\"\"\n$doc\n\"\"\"")
+            $(codegen_ast(jlf))
+        end
     end
+
+    return ex
 end
 
 function jltype(t::InputValueDefinition)
@@ -290,7 +303,6 @@ end
 function jltype(t::EnumTypeDefinition)
     name = jltype(t.name)
     enums = map(jltype, t.enums)
-    #= @info "" t.enums enums =#
     ex = quote
         @enum $name begin
             $(enums...)
