@@ -216,7 +216,6 @@ using Expronicon
         end
     end
 
-
     @testset "docstrings" begin
         @testset "types" begin
             str = """
@@ -321,5 +320,4 @@ using Expronicon
             @test f.doc == "Fetches an object given its ID."
         end
     end
-
 end

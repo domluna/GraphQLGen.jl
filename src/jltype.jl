@@ -77,15 +77,18 @@ function jltype(
     docstr == "" && return ex
     docstr = strip(docstr)
 
-    ex = if typ isa ScalarTypeDefinition || typ isa UnionTypeDefinition || typ isa EnumTypeDefinition
-        :(Core.@doc $docstr $ex)
-    else
-        quote
-            $("\"\"\"\n$docstr\n\"\"\"")
-            # ignore initial LineNumberNode
-            $(ex.args[2:end]...)
+    ex =
+        if typ isa ScalarTypeDefinition ||
+           typ isa UnionTypeDefinition ||
+           typ isa EnumTypeDefinition
+            :(Core.@doc $docstr $ex)
+        else
+            quote
+                $("\"\"\"\n$docstr\n\"\"\"")
+                # ignore initial LineNumberNode
+                $(ex.args[2:end]...)
+            end
         end
-    end
 
     return ex
 end
@@ -300,7 +303,7 @@ function jltype(t::EnumValueDefinition)
     ex = jltype(t.value)
     if !isnothing(something(t.description))
         doc = jltype(t.description)
-        ex = :(Core.@doc $doc $ex)  
+        ex = :(Core.@doc $doc $ex)
     end
     return ex
 end
@@ -410,7 +413,7 @@ function generate_custom_getproperty!(
     length(fnames) == 0 && return
 
     ifexpr = JLIfElse()
-    for i = 1:length(fnames)
+    for i in 1:length(fnames)
         # using symbols with :symbol syntax is tricky in exprs
         ifexpr[:(s === Symbol($("$(fnames[i])")))] =
             :(getfield(t, (Symbol($("$(fnames[i])"))))::$(ftypes[i]))
