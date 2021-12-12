@@ -9,10 +9,10 @@ function Base.convert(::Type{String}, t::RBNF.Token{:str})
     startswith(t.str, "\"\"\"") ? String(t.str[4:end-3]) : String(t.str[2:end-1])
 end
 function Base.convert(::Type{String}, t::RBNF.Token{:single_quote_string_value})
-    String(t.str[2:end-1])
+    string(t.str[2:end-1])
 end
 function Base.convert(::Type{String}, t::RBNF.Token{:triple_quote_string_value})
-    String(t.str[4:end-3])
+    string(t.str[4:end-3])
 end
 
 RBNF.@parser GQL begin
@@ -126,14 +126,17 @@ RBNF.@parser GQL begin
     operation_type_definition::OperationTypeDefinition :=
         [operation_type = operation_type, ':', named_type = named_type]
 
-    type_definition = (
-        scalar_type_definition |
-        object_type_definition |
-        interface_type_definition |
-        union_type_definition |
-        enum_type_definition |
-        input_object_type_definition
-    )
+    type_definition::TypeDefinition := [
+        description = string_value.?,
+        type = (
+            scalar_type_definition |
+            object_type_definition |
+            interface_type_definition |
+            union_type_definition |
+            enum_type_definition |
+            input_object_type_definition
+        ),
+    ]
 
     # TODO: extensions might not work
     type_extension = (
@@ -146,12 +149,11 @@ RBNF.@parser GQL begin
     )
 
     scalar_type_definition::ScalarTypeDefinition :=
-        [description = string_value.?, "scalar", name = name, directives = directives.?]
+        ["scalar", name = name, directives = directives.?]
     scalar_type_extension::ScalarTypeExtension :=
         ["extend", "scalar", name = name, directives = directives]
 
     object_type_definition::ObjectTypeDefinition := [
-        description = string_value.?,
         "type",
         name = name,
         implements_interfaces = implements_interfaces.?,
@@ -197,7 +199,6 @@ RBNF.@parser GQL begin
     ]
 
     interface_type_definition::InterfaceTypeDefinition := [
-        description = string_value.?,
         "interface",
         name = name,
         directives = directives.?,
@@ -209,13 +210,8 @@ RBNF.@parser GQL begin
         ["extend", "interface", name, directives]
     )
 
-    union_type_definition::UnionTypeDefinition := [
-        description = string_value.?,
-        "union",
-        name = name,
-        directives = directives.?,
-        types = union_member_types.?,
-    ]
+    union_type_definition::UnionTypeDefinition :=
+        ["union", name = name, directives = directives.?, types = union_member_types.?]
 
     union_member_types = @direct_recur begin
         init = [['=', '|'.?, named_type] % (x -> x[3])]
@@ -227,13 +223,8 @@ RBNF.@parser GQL begin
         ["extend", "union", name, directives]
     )
 
-    enum_type_definition::EnumTypeDefinition := [
-        description = string_value.?,
-        "enum",
-        name = name,
-        directives = directives.?,
-        enums = enum_values_definition.?,
-    ]
+    enum_type_definition::EnumTypeDefinition :=
+        ["enum", name = name, directives = directives.?, enums = enum_values_definition.?]
 
     enum_values_definition::EnumValuesDefinition :=
         ['{', values = enum_value_definition{*}, '}']
@@ -245,7 +236,6 @@ RBNF.@parser GQL begin
     )
 
     input_object_type_definition::InputObjectTypeDefinition := [
-        description = string_value.?,
         "input",
         name = name,
         directives = directives.?,

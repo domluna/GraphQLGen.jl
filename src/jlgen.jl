@@ -36,21 +36,15 @@ function tojl(doc::Document, scalar_type_map::Dict)
     functions = Expr[]
 
     for d in doc
-        if d isa ObjectTypeDefinition && jltype(d.name) in schema_types
+        if d isa TypeDefinition &&
+           d.type isa ObjectTypeDefinition &&
+           jltype(d.type.name) in schema_types
             jlfuncs = jlfunction(d)
             for f in jlfuncs
                 push!(functions, f)
             end
         else
-            jlt = if d isa ScalarTypeDefinition
-                jltype(d, scalar_type_map)
-            elseif d isa ObjectTypeDefinition
-                jltype(d, revisited_graph)
-            elseif d isa InputObjectTypeDefinition
-                jltype(d, revisited_graph)
-            else
-                jltype(d)
-            end
+            jlt = jltype(d, revisited_graph, scalar_type_map)
             if !isnothing(jlt)
                 push!(types, jlt)
             end
@@ -63,26 +57,58 @@ tojl(doc::Document) = tojl(doc, Dict())
 
 jltype(x) = nothing
 
-function jltype(name::Symbol, fields::Vector{Expr}, graph::Dict{Symbol,Set{Symbol}})
-    sort!(fields, lt = (e1, e2) -> e1.head === :(::) && e2.head === :(=))
+function jltype(
+    t::TypeDefinition,
+    revisited_graph::Dict{Symbol,Set{Symbol}},
+    scalar_type_map::Dict,
+)
+    typ = t.type
+    ex = if typ isa ScalarTypeDefinition
+        jltype(typ, scalar_type_map)
+    elseif typ isa ObjectTypeDefinition
+        jltype(typ, revisited_graph)
+    elseif typ isa InputObjectTypeDefinition
+        jltype(typ, revisited_graph)
+    else
+        jltype(typ)
+    end
 
-    ex = if haskey(graph, name)
-        quote
-            Base.@kwdef mutable struct $name
-                $(fields...)
+    docstr = isnothing(something(t.description)) ? "" : jltype(t.description)
+    docstr == "" && return ex
+    docstr = strip(docstr)
+
+    ex =
+        if typ isa ScalarTypeDefinition ||
+           typ isa UnionTypeDefinition ||
+           typ isa EnumTypeDefinition
+            :(Core.@doc $docstr $ex)
+        else
+            quote
+                $("\"\"\"\n$docstr\n\"\"\"")
+                $(ex.args...)
             end
+        end
+
+    return ex
+end
+
+function jltype(name::Symbol, fields::Vector{JLKwField}, graph::Dict{Symbol,Set{Symbol}})
+    ex = if haskey(graph, name)
+        get_property_expr = generate_custom_getproperty!(fields, name, graph[name])
+        st = JLKwStruct(; ismutable = true, name = name, fields = fields)
+        quote
+            $(codegen_ast(st))
 
             StructTypes.StructType(::Type{$name}) = StructTypes.Mutable()
 
             StructTypes.omitempties(::Type{$name}) = true
 
-            $(codegen_ast(generate_custom_getproperty!(fields, name, graph[name])))
+            $(codegen_ast(get_property_expr))
         end
     else
+        st = JLKwStruct(; ismutable = true, name = name, fields = fields)
         quote
-            Base.@kwdef mutable struct $name
-                $(fields...)
-            end
+            $(codegen_ast(st))
 
             StructTypes.StructType(::Type{$name}) = StructTypes.Mutable()
             StructTypes.omitempties(::Type{$name}) = true
@@ -101,11 +127,14 @@ function jltype(t::ObjectTypeDefinition, graph::Dict{Symbol,Set{Symbol}})
     return jltype(name, fields, graph)
 end
 
+jlfunction(t::TypeDefinition) = jlfunction(t.type)
+
 function jlfunction(t::ObjectTypeDefinition)
     name = jltype(t.name)
     functions = map(t.fields_definition) do fd
         jlfunction(fd, name)
     end
+
     return functions
 end
 
@@ -122,37 +151,42 @@ function jltype(t::FieldDefinition)
     name = jltype(t.name)
     typ = jltype(t.type)
 
-    lhs = Expr(Symbol("::"), name, typ)
-
-    ex = if !t.type.non_null
-        Expr(:(=), lhs, nothing)
+    kw = if !t.type.non_null
+        JLKwField(; name = name, type = typ, default = :nothing)
     else
-        lhs
+        JLKwField(; name = name, type = typ)
     end
 
-    return ex
+    if !isnothing(something(t.description))
+        kw.doc = jltype(t.description)
+    end
+
+    return kw
 end
 
 function jltype(t::ArgumentsDefinition)
-    return jltype.(t.input_value_definitions)
+    map(t.input_value_definitions) do inp
+        jltype(inp)
+    end
+end
+
+function jlfunctionarg(t::ArgumentsDefinition)
+    map(t.input_value_definitions) do inp
+        jlfunctionarg(inp)
+    end
 end
 
 function jlfunction(t::FieldDefinition, stype::Symbol)
     name = jltype(t.name)
     typ = jltype(t.type)
     argdefs = if isnothing(t.arguments_definition)
-        []
+        Expr[]
     else
-        jltype(t.arguments_definition)
+        jlfunctionarg(t.arguments_definition)::Vector{Expr}
     end
 
-    args = filter(e -> e.head === :(::), argdefs)
-    kwargs = filter(e -> e.head === :(=), argdefs)
-    kwargs2 = map(kwargs) do e
-        e = copy(e)
-        e.head = :kw
-        e
-    end
+    args = filter(e -> e.head != :kw, argdefs)
+    kwargs = filter(e -> e.head == :kw, argdefs)
 
     # Recover the original graphql syntax so that
     # the function signature can be used in the graphql response
@@ -161,7 +195,6 @@ function jlfunction(t::FieldDefinition, stype::Symbol)
     else
         gqlstr(t.arguments_definition)
     end
-
     # NOTE: not sure if keyword arguments need to come last
     sort!(funcsigs, by = s -> s.default)
 
@@ -181,48 +214,81 @@ function jlfunction(t::FieldDefinition, stype::Symbol)
         e = a.args[1]
         :($("$e") => $e)
     end
-    variable_kw = map(kwargs2) do kw
+    variable_kw = map(kwargs) do kw
         e = kw.args[1].args[1]
         :($("$e") => $e)
     end
 
-    quote
-        struct $name
-            ret::String
+    body = quote
+        q = s -> $("""
+        $(lowercase(string(stype))) $(uppercasefirst(string(name)))($sig) {
+        $(name)($input) {
+        """) * s * """
+        }
+        }"""
+
+        query = q(f.query)
+        variables = Dict($(variable_args...), $(variable_kw...))
+        filter!(v -> !isnothing(v[2]), variables)
+
+        return (; query, variables)
+    end
+
+    doc::Union{Nothing,String} = if isnothing(something(t.description))
+        nothing
+    else
+        strip(jltype(t.description))
+    end
+    jlf = JLFunction(; name, args, kwargs, body)
+
+    ex = if isnothing(doc)
+        quote
+            struct $name
+                query::String
+            end
+
+            $(codegen_ast(jlf))
         end
+    else
+        quote
+            struct $name
+                query::String
+            end
 
-        function (f::$name)($(args...); $(kwargs2...))::$typ
-            q = s -> $("""
-            $(lowercase(string(stype))) $(uppercasefirst(string(name)))($sig) {
-            $(name)($input) {
-            """) * s * """
-            }
-            }"""
-
-            query = q(f.ret)
-            variables = Dict($(variable_args...), $(variable_kw...))
-            filter!(v -> !isnothing(v[2]), variables)
-
-            return (; query, variables)
+            $("\"\"\"\n$doc\n\"\"\"")
+            $(codegen_ast(jlf))
         end
     end
+
+    return ex
 end
 
 function jltype(t::InputValueDefinition)
     name = jltype(t.name)
     typ = jltype(t.type)
 
-    lhs = Expr(Symbol("::"), name, typ)
-
-    ex = if !isnothing(t.default_value)
-        Expr(:(=), lhs, jltype(t.default_value))
-    elseif !t.type.non_null
-        Expr(:(=), lhs, nothing)
+    kw = if !t.type.non_null
+        JLKwField(; name = name, type = typ, default = jltype(t.default_value))
     else
-        lhs
+        JLKwField(; name = name, type = typ)
     end
 
-    return ex
+    if !isnothing(something(t.description))
+        kw.doc = jltype(t.description)
+    end
+
+    return kw
+end
+
+function jlfunctionarg(t::InputValueDefinition)
+    name = jltype(t.name)
+    typ = jltype(t.type)
+
+    if !t.type.non_null
+        Expr(:kw, Expr(:(::), name, typ), jltype(t.default_value))
+    else
+        Expr(:(::), name, typ)
+    end
 end
 
 function jltype(t::UnionTypeDefinition)
@@ -246,7 +312,12 @@ function jltype(t::EnumTypeDefinition)
 end
 
 function jltype(t::EnumValueDefinition)
-    jltype(t.value)
+    ex = jltype(t.value)
+    if !isnothing(something(t.description))
+        doc = jltype(t.description)
+        ex = :(Core.@doc $doc $ex)
+    end
+    return ex
 end
 
 function jltype(t::ScalarTypeDefinition, scalar_type_map::Dict)
@@ -275,11 +346,12 @@ function jltype(t::ListType)
 end
 jltype(t::DefaultValue) = jltype(t.value)
 jltype(t::RBNF.Token) = Symbol(t.str)
-jltype(t::RBNF.Token{:single_quote_string_value}) = t.str
-jltype(t::RBNF.Token{:triple_quote_string_value}) = t.str
-function jltype(t::Some)
-    jltype(something(t))
-end
+jltype(t::RBNF.Token{:int_value}) = Base.parse(Int32, t.str)
+jltype(t::RBNF.Token{:float_value}) = Base.parse(Float64, t.str)
+jltype(t::RBNF.Token{:single_quote_string_value}) = convert(String, t)
+jltype(t::RBNF.Token{:triple_quote_string_value}) = convert(String, t)
+jltype(t::Some) = jltype(something(t))
+jltype(t::Nothing) = :nothing
 
 """
 Returns the string GraphQL representation of the parsed GraphQL type.
@@ -317,54 +389,46 @@ gqlstr(t::RBNF.Token) = t.str
 gqlstr(::Nothing) = ""
 
 """
-    generate_custom_getproperty!(fields::Vector{Expr}, typename::Symbol, cyclic_types::Set{Symbol})
+    generate_custom_getproperty!(fields::Vector{JLKwField}, typename::Symbol, cyclic_types::Set{Symbol})
 
 Generates a custom `Base.getproperty` function for the type `typename`. This is done
 in effort to preserve type inference of fields there the type has to be removed due to
-definitioning types in a cyclic order.
+defining types in a cyclic order.
 
     !!! The `fields` argument is mutated by removing type information for cyclic fields.
 """
 function generate_custom_getproperty!(
-    fields::Vector{Expr},
+    fields::Vector{JLKwField},
     typename::Symbol,
     cyclic_types::Set{Symbol},
 )
     fnames = Symbol[]
-    ftyps = Union{Expr,Symbol}[]
+    ftypes = Union{Expr,Symbol}[]
 
     for (i, f) in enumerate(fields)
-        non_null_type = f.head === :(::)
-        fname, ftyp = if non_null_type
-            f.args[1], f.args[2]
-        else
-            f.args[1].args[1], f.args[1].args[2]
-        end
+        fname = f.name
+        ftype = f.type
 
-        ft = if ftyp isa Symbol
-            ftyp
+        ft = if ftype isa Symbol
+            ftype
         else
-            filter(ft -> !in(ft, [:Union, :Missing, :Nothing]), ftyp.args)[1]
+            filter(ft -> !in(ft, [:Union, :Missing, :Nothing]), ftype.args)[1]
         end
         ft in cyclic_types || continue
 
         push!(fnames, fname)
-        push!(ftyps, ftyp)
+        push!(ftypes, ftype)
 
-        if non_null_type
-            fields[i] = Expr(:($fname))
-        else
-            fields[i] = Expr(:(=), fname, nothing)
-        end
+        fields[i] = JLKwField(; name = fname)
     end
 
     length(fnames) == 0 && return
 
     ifexpr = JLIfElse()
-    for i = 1:length(fnames)
+    for i in 1:length(fnames)
         # using symbols with :symbol syntax is tricky in exprs
         ifexpr[:(s === Symbol($("$(fnames[i])")))] =
-            :(getfield(t, (Symbol($("$(fnames[i])"))))::$(ftyps[i]))
+            :(getfield(t, (Symbol($("$(fnames[i])"))))::$(ftypes[i]))
     end
     ifexpr.otherwise = :(getfield(t, s))
 
