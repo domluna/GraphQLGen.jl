@@ -1,3 +1,5 @@
+using Pkg
+
 function generate_api(
     module_path::String,
     schema_paths::Vector{String};
@@ -9,7 +11,7 @@ function generate_api(
         if isfile(p)
             _, ext = splitext(p)
             if ext in (".graphql", ".schema")
-                @info "reading in schema file" f
+                @info "reading in schema file" file = p
                 str = String(read(fp))
                 schema *= str
                 schema *= "\n"
@@ -21,7 +23,7 @@ function generate_api(
                     ".git" in split(fp, Base.Filesystem.path_separator) && continue
                     _, ext = splitext(fp)
                     if ext in (".graphql", ".schema")
-                        @info "reading in schema file" f
+                        @info "reading in schema file" file = f
                         str = String(read(fp))
                         schema *= str
                         schema *= "\n"
@@ -78,7 +80,11 @@ function generate_api(
         end
     end
 
-    @info "GraphQL API successfully generated ..." dir
+    @info "Adding dependencies for generated files ..."
+    Pkg.activate(dir)
+    Pkg.add("StructTypes")
+
+    @info "GraphQL API successfully generated ..." directory = dir
     return nothing
 end
 
