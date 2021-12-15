@@ -1,9 +1,9 @@
 using JSON3
 
 module API
-    using StructTypes
-    include("graphqlgen_types.jl")
-    include("graphqlgen_functions.jl")
+using StructTypes
+include("graphqlgen_types.jl")
+include("graphqlgen_functions.jl")
 end;
 
 NODE_QUERY = """

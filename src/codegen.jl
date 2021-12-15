@@ -23,7 +23,7 @@ function get_schema_types(sd::SchemaDefinition)
         if o.operation_type === "query" ||
            o.operation_type === "mutation" ||
            o.operation_type === "subscription"
-           schema_types[jltype(o.named_type.type)] = Symbol(o.operation_type)
+            schema_types[jltype(o.named_type.type)] = Symbol(o.operation_type)
         end
     end
     return schema_types
@@ -127,7 +127,8 @@ function jltype(t::ObjectTypeDefinition, graph::Dict{Symbol,Set{Symbol}})
     return jltype(name, fields, graph)
 end
 
-jlfunction(t::TypeDefinition, schema_types::Dict{Symbol,Symbol}) = jlfunction(t.type, schema_types)
+jlfunction(t::TypeDefinition, schema_types::Dict{Symbol,Symbol}) =
+    jlfunction(t.type, schema_types)
 
 function jlfunction(t::ObjectTypeDefinition, schema_types::Dict{Symbol,Symbol})
     name = jltype(t.name)

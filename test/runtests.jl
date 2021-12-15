@@ -4,16 +4,16 @@ using Expronicon
 
 @testset "GraphQLGen" begin
     @testset "get_leaf_type" begin
-        ex = :(Union{Vector{Union{Person, Missing, Nothing}}, Missing, Nothing})
+        ex = :(Union{Vector{Union{Person,Missing,Nothing}},Missing,Nothing})
         @test GraphQLGen.get_leaf_type(ex) == :Person
 
-        ex = :(Union{Vector{Union{Person}}, Missing, Nothing})
+        ex = :(Union{Vector{Union{Person}},Missing,Nothing})
         @test GraphQLGen.get_leaf_type(ex) == :Person
 
-        ex = :(Vector{Union{Person, Missing, Nothing}})
+        ex = :(Vector{Union{Person,Missing,Nothing}})
         @test GraphQLGen.get_leaf_type(ex) == :Person
 
-        ex = :(Union{Person, Missing, Nothing})
+        ex = :(Union{Person,Missing,Nothing})
         @test GraphQLGen.get_leaf_type(ex) == :Person
 
         ex = :Person
