@@ -220,12 +220,17 @@ function jlfunction(t::FieldDefinition, stype::Symbol)
     end
 
     body = quote
-        q = s -> $("""
-        $(lowercase(string(stype))) $(uppercasefirst(string(name)))($sig) {
-        $(name)($input) {
-        """) * s * """
-        }
-        }"""
+        q = inp -> begin
+            s = $("""
+            $(lowercase(string(stype))) $(uppercasefirst(string(name)))($sig) {
+                $(name)($input) {
+            """)
+            s *= inp
+            s *= """
+                }
+            }
+            """
+        end
 
         query = q(f.query)
         variables = Dict($(variable_args...), $(variable_kw...))
