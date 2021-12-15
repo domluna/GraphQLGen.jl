@@ -72,5 +72,5 @@ function generate(
     generate_types::Bool = true,
     generate_functions::Bool = true,
 )
-    generate_api(saved_files_dir, [schema_path]; generate_types, generate_functions)
+    generate(saved_files_dir, [schema_path]; generate_types, generate_functions)
 end
