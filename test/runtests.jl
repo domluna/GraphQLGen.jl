@@ -3,6 +3,23 @@ using Test
 using Expronicon
 
 @testset "GraphQLGen" begin
+    @testset "get_leaf_type" begin
+        ex = :(Union{Vector{Union{Person,Missing,Nothing}},Missing,Nothing})
+        @test GraphQLGen.get_leaf_type(ex) == :Person
+
+        ex = :(Union{Vector{Union{Person}},Missing,Nothing})
+        @test GraphQLGen.get_leaf_type(ex) == :Person
+
+        ex = :(Vector{Union{Person,Missing,Nothing}})
+        @test GraphQLGen.get_leaf_type(ex) == :Person
+
+        ex = :(Union{Person,Missing,Nothing})
+        @test GraphQLGen.get_leaf_type(ex) == :Person
+
+        ex = :Person
+        @test GraphQLGen.get_leaf_type(ex) == :Person
+    end
+
     @testset "scalar" begin
         str = """
         scalar A
@@ -140,8 +157,11 @@ using Expronicon
         @test exprs[2].args[1].args[2] == :B
         @test exprs[3].args[1].args[2] == :C
 
-        @test exprs[1].args[end].head == :function
-        f = JLFunction(exprs[1].args[end])
+        @test exprs[1].args[2].head == :function
+        f = JLFunction(exprs[1].args[2])
+        @test f.kwargs[1] == :($(Expr(:kw, :field1, :nothing)))
+        @test f.kwargs[2] == :($(Expr(:kw, :field2, :nothing)))
+        @test f.kwargs[3] == :field3
 
         st = exprs[1].args[1]
         fields = st.args[3].args
@@ -149,6 +169,8 @@ using Expronicon
         @test fields[2] == :(field2::Union{A,Missing,Nothing})
         @test fields[3] == :field3
 
+        @test exprs[1].args[end].head == :function
+        f = JLFunction(exprs[1].args[end])
         funcdef = :(Base.getproperty(t::A, sym::Symbol))
         @test f.name == :(Base.getproperty)
 
@@ -185,12 +207,12 @@ using Expronicon
             @test exprs[1].args[1].args[3] == :(query::String)
             @test exprs[1].args[2] == "\"\"\"\nthis returns some books\n\"\"\""
             f = JLFunction(exprs[1].args[3])
-            @test f.name == :books
+            @test f.name == :(f::books)
             @test f.args == Any[:(ids::Vector{String})]
             @test f.kwargs == Any[]
 
             f = JLFunction(exprs[2].args[2])
-            @test f.name == :authorBooks
+            @test f.name == :(f::authorBooks)
             @test f.args == Any[:(authorName::String)]
             @test f.kwargs[1] ==
                   :($(Expr(:kw, :(genre::Union{Genre,Missing,Nothing}), :nothing)))
@@ -220,7 +242,7 @@ using Expronicon
             exprs = map(GraphQLGen.ExprPrettify.prettify, functions)
 
             f = JLFunction(exprs[1].args[2])
-            @test f.name == :addBooks
+            @test f.name == :(f::addBooks)
             @test f.args == Any[:(input::Vector{BookInput})]
             @test f.kwargs == Any[]
         end

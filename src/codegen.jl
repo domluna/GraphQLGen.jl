@@ -8,22 +8,22 @@ const DEFAULT_TYPE_MAP = Dict{Symbol,Symbol}(
 const BUILTIN_GRAPHQL_TYPES = Set{Symbol}([:ID, :Int, :String, :Float, :Boolean])
 
 function get_schema_types(doc::Document)
-    schema_types = Set{Symbol}()
+    schema_types = Dict{Symbol,Symbol}()
     for d in doc
         if d isa SchemaDefinition
-            union!(schema_types, get_schema_types(d))
+            merge!(schema_types, get_schema_types(d))
         end
     end
     return schema_types
 end
 
 function get_schema_types(sd::SchemaDefinition)
-    schema_types = Set{Symbol}()
+    schema_types = Dict{Symbol,Symbol}()
     for o in sd.operation_type_definitions
         if o.operation_type === "query" ||
            o.operation_type === "mutation" ||
            o.operation_type === "subscription"
-            push!(schema_types, jltype(o.named_type.type))
+            schema_types[jltype(o.named_type.type)] = Symbol(o.operation_type)
         end
     end
     return schema_types
@@ -38,8 +38,8 @@ function tojl(doc::Document, scalar_type_map::Dict)
     for d in doc
         if d isa TypeDefinition &&
            d.type isa ObjectTypeDefinition &&
-           jltype(d.type.name) in schema_types
-            jlfuncs = jlfunction(d)
+           haskey(schema_types, jltype(d.type.name))
+            jlfuncs = jlfunction(d, schema_types)
             for f in jlfuncs
                 push!(functions, f)
             end
@@ -127,12 +127,13 @@ function jltype(t::ObjectTypeDefinition, graph::Dict{Symbol,Set{Symbol}})
     return jltype(name, fields, graph)
 end
 
-jlfunction(t::TypeDefinition) = jlfunction(t.type)
+jlfunction(t::TypeDefinition, schema_types::Dict{Symbol,Symbol}) =
+    jlfunction(t.type, schema_types)
 
-function jlfunction(t::ObjectTypeDefinition)
+function jlfunction(t::ObjectTypeDefinition, schema_types::Dict{Symbol,Symbol})
     name = jltype(t.name)
     functions = map(t.fields_definition) do fd
-        jlfunction(fd, name)
+        jlfunction(fd, schema_types[name])
     end
 
     return functions
@@ -220,12 +221,17 @@ function jlfunction(t::FieldDefinition, stype::Symbol)
     end
 
     body = quote
-        q = s -> $("""
-        $(lowercase(string(stype))) $(uppercasefirst(string(name)))($sig) {
-        $(name)($input) {
-        """) * s * """
-        }
-        }"""
+        q = inp -> begin
+                s = $("""
+                $(lowercase(string(stype))) $(uppercasefirst(string(name)))($sig) {
+                    $(name)($input) {
+                """)
+                s *= inp
+                s *= """
+                    }
+                }
+                """
+            end
 
         query = q(f.query)
         variables = Dict($(variable_args...), $(variable_kw...))
@@ -239,7 +245,7 @@ function jlfunction(t::FieldDefinition, stype::Symbol)
     else
         strip(jltype(t.description))
     end
-    jlf = JLFunction(; name, args, kwargs, body)
+    jlf = JLFunction(; name = :(f::$name), args, kwargs, body)
 
     ex = if isnothing(doc)
         quote
@@ -408,18 +414,15 @@ function generate_custom_getproperty!(
     for (i, f) in enumerate(fields)
         fname = f.name
         ftype = f.type
+        fdefault = f.default
 
-        ft = if ftype isa Symbol
-            ftype
-        else
-            filter(ft -> !in(ft, [:Union, :Missing, :Nothing]), ftype.args)[1]
-        end
+        ft = get_leaf_type(ftype)
         ft in cyclic_types || continue
 
         push!(fnames, fname)
         push!(ftypes, ftype)
 
-        fields[i] = JLKwField(; name = fname)
+        fields[i] = JLKwField(; name = fname, default = fdefault)
     end
 
     length(fnames) == 0 && return
@@ -439,4 +442,17 @@ function generate_custom_getproperty!(
     end
 
     return ex
+end
+
+function get_leaf_type(ex::Union{Expr,Symbol})
+    ex isa Symbol && return ex
+
+    t = if ex.args[1] == :Vector
+        get_leaf_type(ex.args[2])
+    else
+        idx = findfirst(ft -> !in(ft, (:Union, :Missing, :Nothing)), ex.args)
+        get_leaf_type(ex.args[idx])
+    end
+
+    return t
 end

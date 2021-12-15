@@ -14,5 +14,3 @@ function print(io::IO, exprs::Vector{Expr})
     end
     return
 end
-
-write(io::IO, exprs::Vector{Expr}) = print(io, exprs)
