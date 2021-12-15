@@ -1,7 +1,7 @@
 using Pkg
 
 function generate_api(
-    module_path::String,
+    saved_files_dir::String,
     schema_paths::Vector{String};
     generate_types::Bool = true,
     generate_functions::Bool = true,
@@ -36,7 +36,7 @@ function generate_api(
     # generate types and functions
     types, functions = GraphQLGen.tojl(GraphQLGen.parse(schema))
 
-    dir = abspath(module_path)
+    dir = abspath(saved_files_dir)
     try
         mkdir(dir)
     catch e
@@ -47,52 +47,30 @@ function generate_api(
         end
     end
 
-    module_name = splitpath(dir)[end]
-    # make sure there's no extension
-    module_name, _ = splitext(module_name)
-    filename = joinpath(dir, module_name * ".jl")
-
-    contents = """
-    module $module_name
-
-    using StructTypes
-
-    include("types.jl")
-    include("functions.jl")
-
-    end
-    """
-    open("$filename", "w") do f
-        Base.write(f, contents)
-    end
-
     if generate_types
-        filename = joinpath(dir, "types.jl")
+        filename = joinpath(dir, "graphqlgen_types.jl")
         open("$filename", "w") do f
             GraphQLGen.print(f, types)
         end
+        @info "Generated Julia GraphQL types" path = filename
     end
 
     if generate_functions
-        filename = joinpath(dir, "functions.jl")
+        filename = joinpath(dir, "graphqlgen_functions.jl")
         open("$filename", "w") do f
             GraphQLGen.print(f, functions)
         end
+        @info "Generated Julia GraphQL functions" path = filename
     end
 
-    @info "Adding dependencies for generated files ..."
-    Pkg.activate(dir)
-    Pkg.add("StructTypes")
-
-    @info "GraphQL API successfully generated ..." directory = dir
     return nothing
 end
 
 function generate_api(
-    module_path::String,
+    saved_files_dir::String,
     schema_path::String;
     generate_types::Bool = true,
     generate_functions::Bool = true,
 )
-    generate_api(module_path, [schema_path]; generate_types, generate_functions)
+    generate_api(saved_files_dir, [schema_path]; generate_types, generate_functions)
 end
