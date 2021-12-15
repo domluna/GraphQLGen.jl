@@ -221,16 +221,16 @@ function jlfunction(t::FieldDefinition, stype::Symbol)
 
     body = quote
         q = inp -> begin
-            s = $("""
-            $(lowercase(string(stype))) $(uppercasefirst(string(name)))($sig) {
-                $(name)($input) {
-            """)
-            s *= inp
-            s *= """
+                s = $("""
+                $(lowercase(string(stype))) $(uppercasefirst(string(name)))($sig) {
+                    $(name)($input) {
+                """)
+                s *= inp
+                s *= """
+                    }
                 }
-            }
-            """
-        end
+                """
+            end
 
         query = q(f.query)
         variables = Dict($(variable_args...), $(variable_kw...))
@@ -244,7 +244,7 @@ function jlfunction(t::FieldDefinition, stype::Symbol)
     else
         strip(jltype(t.description))
     end
-    jlf = JLFunction(; name=:(f::$name), args, kwargs, body)
+    jlf = JLFunction(; name = :(f::$name), args, kwargs, body)
 
     ex = if isnothing(doc)
         quote

@@ -6,7 +6,7 @@ using Expronicon
 include("types.jl")
 include("parser.jl")
 include("dag.jl")
-include("jlgen.jl")
+include("codegen.jl")
 
 include("ExprPrettify/expr_prettify.jl")
 include("print.jl")

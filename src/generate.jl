@@ -1,5 +1,25 @@
 using Pkg
 
+
+"""
+    function generate(
+        saved_files_dir::String,
+        schema_paths::Vector{String};
+        generate_types::Bool = true,
+        generate_functions::Bool = true,
+    )
+
+Generate Julia code files for GraphQL types and functions.
+
+"graphqlgen_types.jl": contains all the GraphQL types
+
+"graphqlgen_functions.jl": contains all the GraphQL functions (mutations, queries, subscriptions)
+
+* `saved_files_dir`: directory where the generated files will be saved
+* `schema_paths`: list of paths to GraphQL schema files. This can be a file or a directory. If it's a directory, it will be recursively searched for GraphQL schema files.
+* `generate_types`: whether to generate "types.jl"
+* `generate_functions`: whether to generate "functons.jl"
+"""
 function generate(
     saved_files_dir::String,
     schema_paths::Vector{String};
