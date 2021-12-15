@@ -1,6 +1,6 @@
 using Pkg
 
-function generate_api(
+function generate(
     saved_files_dir::String,
     schema_paths::Vector{String};
     generate_types::Bool = true,
@@ -66,7 +66,7 @@ function generate_api(
     return nothing
 end
 
-function generate_api(
+function generate(
     saved_files_dir::String,
     schema_path::String;
     generate_types::Bool = true,

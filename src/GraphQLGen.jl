@@ -11,7 +11,7 @@ include("jlgen.jl")
 include("ExprPrettify/expr_prettify.jl")
 include("print.jl")
 
-include("generate_api.jl")
+include("generate.jl")
 
 """
     parse(schema::AbstractString)
