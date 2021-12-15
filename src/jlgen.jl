@@ -239,7 +239,7 @@ function jlfunction(t::FieldDefinition, stype::Symbol)
     else
         strip(jltype(t.description))
     end
-    jlf = JLFunction(; name, args, kwargs, body)
+    jlf = JLFunction(; name=:(f::$name), args, kwargs, body)
 
     ex = if isnothing(doc)
         quote
@@ -409,11 +409,7 @@ function generate_custom_getproperty!(
         fname = f.name
         ftype = f.type
 
-        ft = if ftype isa Symbol
-            ftype
-        else
-            filter(ft -> !in(ft, [:Union, :Missing, :Nothing]), ftype.args)[1]
-        end
+        ft = get_leaf_type(ftype)
         ft in cyclic_types || continue
 
         push!(fnames, fname)
@@ -439,4 +435,17 @@ function generate_custom_getproperty!(
     end
 
     return ex
+end
+
+function get_leaf_type(ex::Union{Expr,Symbol})
+    ex isa Symbol && return ex
+
+    t = if ex.args[1] == :Vector
+        get_leaf_type(ex.args[2])
+    else
+        idx = findfirst(ft -> !in(ft, (:Union, :Missing, :Nothing)), ex.args)
+        get_leaf_type(ex.args[idx])
+    end
+
+    return t
 end
