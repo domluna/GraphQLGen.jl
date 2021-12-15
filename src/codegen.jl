@@ -413,6 +413,7 @@ function generate_custom_getproperty!(
     for (i, f) in enumerate(fields)
         fname = f.name
         ftype = f.type
+        fdefault = f.default
 
         ft = get_leaf_type(ftype)
         ft in cyclic_types || continue
@@ -420,7 +421,7 @@ function generate_custom_getproperty!(
         push!(fnames, fname)
         push!(ftypes, ftype)
 
-        fields[i] = JLKwField(; name = fname)
+        fields[i] = JLKwField(; name = fname, default = fdefault)
     end
 
     length(fnames) == 0 && return

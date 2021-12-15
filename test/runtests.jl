@@ -157,8 +157,11 @@ using Expronicon
         @test exprs[2].args[1].args[2] == :B
         @test exprs[3].args[1].args[2] == :C
 
-        @test exprs[1].args[end].head == :function
-        f = JLFunction(exprs[1].args[end])
+        @test exprs[1].args[2].head == :function
+        f = JLFunction(exprs[1].args[2])
+        @test f.kwargs[1] == :($(Expr(:kw, :field1, :nothing)))
+        @test f.kwargs[2] == :($(Expr(:kw, :field2, :nothing)))
+        @test f.kwargs[3] == :field3
 
         st = exprs[1].args[1]
         fields = st.args[3].args
@@ -166,6 +169,8 @@ using Expronicon
         @test fields[2] == :(field2::Union{A,Missing,Nothing})
         @test fields[3] == :field3
 
+        @test exprs[1].args[end].head == :function
+        f = JLFunction(exprs[1].args[end])
         funcdef = :(Base.getproperty(t::A, sym::Symbol))
         @test f.name == :(Base.getproperty)
 
