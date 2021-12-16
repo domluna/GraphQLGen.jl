@@ -15,7 +15,7 @@ julia> GraphQLGen.generate("GraphQLAPI", "schemas/")
 Now you'll have two files:
 
 - `graphqlgen_types.jl`: contains all the GraphQL types
-- `graphqlgen_functions.jl`: contains all the GraphQL functions (mutations, queries, subscriptions)
+- `graphqlgen_functions.jl`: contains all the GraphQL functions (mutations, queries, subscriptions). The intended use of these functions at the moment is to create easily create queries and variables such that they can be easily serialized for an HTTP request.
 
 You can import and use these types and functions however you wish but note **the `StructTypes` dependency is REQUIRED since various functions were generated so the types are automatically compatible with `StructTypes`.**
 
