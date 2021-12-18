@@ -1,6 +1,6 @@
 const DEFAULT_TYPE_MAP = Dict{Symbol,Symbol}(
     :Float => :Float64, # graphql Float is Float64
-    :Int => :Int32, # graphql Int is Int32
+    :Int => :Int, # graphql Int is Int
     :Boolean => :Bool,
     :ID => :String, # serialized as a String but not intended to be human-readable
 )
