@@ -82,7 +82,7 @@ using Expronicon
             fields = ex.args[1].args[3].args
 
             @test fields[1].args[1] == :field1
-            @test fields[1].args[2] == :(Union{Int32,Missing,Nothing})
+            @test fields[1].args[2] == :(Union{Int,Missing,Nothing})
 
             @test fields[2].args[1] == :field2
             @test fields[2].args[2] == :String
@@ -216,7 +216,7 @@ using Expronicon
             @test f.args == Any[:(authorName::String)]
             @test f.kwargs[1] ==
                   :($(Expr(:kw, :(genre::Union{Genre,Missing,Nothing}), :nothing)))
-            @test f.kwargs[2] == :($(Expr(:kw, :(limit::Union{Int32,Missing,Nothing}), 10)))
+            @test f.kwargs[2] == :($(Expr(:kw, :(limit::Union{Int,Missing,Nothing}), 10)))
         end
 
         @testset "mutation" begin
