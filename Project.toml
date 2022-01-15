@@ -9,7 +9,8 @@ RBNF = "83ef0002-5b9e-11e9-219b-65bac3c6d69c"
 
 [compat]
 Expronicon = "0.6"
-RBNF = "0.2.3"
+RBNF = "0.2"
+julia = "1.6"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
