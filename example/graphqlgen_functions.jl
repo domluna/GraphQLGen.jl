@@ -3,9 +3,9 @@ struct allFilms
 end
 function (f::allFilms)(;
     after::Union{String,Missing,Nothing} = nothing,
-    first::Union{Int32,Missing,Nothing} = nothing,
+    first::Union{Int,Missing,Nothing} = nothing,
     before::Union{String,Missing,Nothing} = nothing,
-    last::Union{Int32,Missing,Nothing} = nothing,
+    last::Union{Int,Missing,Nothing} = nothing,
 )
     q = (
         inp -> begin
@@ -45,9 +45,9 @@ struct allPeople
 end
 function (f::allPeople)(;
     after::Union{String,Missing,Nothing} = nothing,
-    first::Union{Int32,Missing,Nothing} = nothing,
+    first::Union{Int,Missing,Nothing} = nothing,
     before::Union{String,Missing,Nothing} = nothing,
-    last::Union{Int32,Missing,Nothing} = nothing,
+    last::Union{Int,Missing,Nothing} = nothing,
 )
     q = (
         inp -> begin
@@ -87,9 +87,9 @@ struct allPlanets
 end
 function (f::allPlanets)(;
     after::Union{String,Missing,Nothing} = nothing,
-    first::Union{Int32,Missing,Nothing} = nothing,
+    first::Union{Int,Missing,Nothing} = nothing,
     before::Union{String,Missing,Nothing} = nothing,
-    last::Union{Int32,Missing,Nothing} = nothing,
+    last::Union{Int,Missing,Nothing} = nothing,
 )
     q = (
         inp -> begin
@@ -129,9 +129,9 @@ struct allSpecies
 end
 function (f::allSpecies)(;
     after::Union{String,Missing,Nothing} = nothing,
-    first::Union{Int32,Missing,Nothing} = nothing,
+    first::Union{Int,Missing,Nothing} = nothing,
     before::Union{String,Missing,Nothing} = nothing,
-    last::Union{Int32,Missing,Nothing} = nothing,
+    last::Union{Int,Missing,Nothing} = nothing,
 )
     q = (
         inp -> begin
@@ -171,9 +171,9 @@ struct allStarships
 end
 function (f::allStarships)(;
     after::Union{String,Missing,Nothing} = nothing,
-    first::Union{Int32,Missing,Nothing} = nothing,
+    first::Union{Int,Missing,Nothing} = nothing,
     before::Union{String,Missing,Nothing} = nothing,
-    last::Union{Int32,Missing,Nothing} = nothing,
+    last::Union{Int,Missing,Nothing} = nothing,
 )
     q = (
         inp -> begin
@@ -213,9 +213,9 @@ struct allVehicles
 end
 function (f::allVehicles)(;
     after::Union{String,Missing,Nothing} = nothing,
-    first::Union{Int32,Missing,Nothing} = nothing,
+    first::Union{Int,Missing,Nothing} = nothing,
     before::Union{String,Missing,Nothing} = nothing,
-    last::Union{Int32,Missing,Nothing} = nothing,
+    last::Union{Int,Missing,Nothing} = nothing,
 )
     q = (
         inp -> begin

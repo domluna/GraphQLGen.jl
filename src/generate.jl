@@ -29,7 +29,7 @@ function generate(
             _, ext = splitext(p)
             if ext in (".graphql", ".schema")
                 @info "reading in schema file" file = p
-                str = String(read(fp))
+                str = String(read(p))
                 schema *= str
                 schema *= "\n"
             end
@@ -50,6 +50,45 @@ function generate(
         end
     end
 
+    generate_from_schema(saved_files_dir, schema; generate_types, generate_functions)
+
+    return nothing
+end
+
+function generate(
+    saved_files_dir::String,
+    schema_path::String;
+    generate_types::Bool = true,
+    generate_functions::Bool = true,
+)
+    generate(saved_files_dir, [schema_path]; generate_types, generate_functions)
+end
+
+"""
+    function generate_from_schema(
+        saved_files_dir::String,
+        schema::String;
+        generate_types::Bool = true,
+        generate_functions::Bool = true,
+    )
+
+Generate Julia code files for GraphQL types and functions.
+
+"graphqlgen_types.jl": contains all the GraphQL types
+
+"graphqlgen_functions.jl": contains all the GraphQL functions (mutations, queries, subscriptions)
+
+* `saved_files_dir`: directory where the generated files will be saved
+* `schema`: GraphQL schema as a string
+* `generate_types`: whether to generate "types.jl"
+* `generate_functions`: whether to generate "functons.jl"
+"""
+function generate_from_schema(
+    saved_files_dir::String,
+    schema::String;
+    generate_types::Bool = true,
+    generate_functions::Bool = true,
+)
     # generate types and functions
     types, functions = GraphQLGen.tojl(GraphQLGen.parse(schema))
 
@@ -81,13 +120,4 @@ function generate(
     end
 
     return nothing
-end
-
-function generate(
-    saved_files_dir::String,
-    schema_path::String;
-    generate_types::Bool = true,
-    generate_functions::Bool = true,
-)
-    generate(saved_files_dir, [schema_path]; generate_types, generate_functions)
 end
