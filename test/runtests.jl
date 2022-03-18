@@ -372,7 +372,6 @@ using Pkg
 
             @test exprs[1].args[2] == "\"\"\"\nFetches an object given its ID.\n\"\"\""
         end
-
     end
     @testset "generate API" begin
         td = tempname()
@@ -384,7 +383,7 @@ using Pkg
         eval(:(using $pkgname; API = $pkgname))
 
         @testset "API get/set" begin
-            p = API.Person(;id="22")
+            p = API.Person(; id = "22")
             edge = API.FilmCharactersEdge(p, "film")
             @test edge.node == p
 

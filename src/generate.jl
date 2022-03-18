@@ -105,7 +105,7 @@ function generate_from_schema(
     if fresh_pkg
         @info "creating new project" module_name = d
 
-    # get current project information
+        # get current project information
         pinfo = Pkg.project()
 
         Pkg.API.generate(dir)
@@ -116,16 +116,19 @@ function generate_from_schema(
 
         filename = "$dir/src/$d.jl"
         open(filename, "w") do f
-            Base.print(f, """
-            module $d
+            Base.print(
+                f,
+                """
+                module $d
 
-            using StructTypes
+                using StructTypes
 
-            include("$types_filename")
-            include("$functions_filename")
+                include("$types_filename")
+                include("$functions_filename")
 
-            end # module $d
-                """)
+                end # module $d
+                """,
+            )
         end
         pinfo.name === nothing ? Pkg.API.activate() : Pkg.API.activate(".")
     else
