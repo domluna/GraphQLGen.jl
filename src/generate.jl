@@ -23,15 +23,15 @@ function generate(
     generate_types::Bool = true,
     generate_functions::Bool = true,
 )
-    schema = ""
+    io = IOBuffer()
     for p in schema_paths
         if isfile(p)
             _, ext = splitext(p)
             if ext in (".graphql", ".schema")
                 @info "reading in schema file" file = p
-                str = String(read(fp))
-                schema *= str
-                schema *= "\n"
+                str = String(read(p))
+                write(io, str)
+                write(io, '\n')
             end
         else
             for (root, dirs, files) in walkdir(p)
@@ -42,43 +42,17 @@ function generate(
                     if ext in (".graphql", ".schema")
                         @info "reading in schema file" file = f
                         str = String(read(fp))
-                        schema *= str
-                        schema *= "\n"
+                        write(io, str)
+                        write(io, '\n')
                     end
                 end
             end
         end
     end
 
-    # generate types and functions
-    types, functions = GraphQLGen.tojl(GraphQLGen.parse(schema))
+    schema = String(take!(io))
 
-    dir = abspath(saved_files_dir)
-    try
-        mkdir(dir)
-    catch e
-        if e isa Base.IOError && e.code == -17
-            # ignore
-        else
-            rethrow()
-        end
-    end
-
-    if generate_types
-        filename = joinpath(dir, "graphqlgen_types.jl")
-        open("$filename", "w") do f
-            GraphQLGen.print(f, types)
-        end
-        @info "Generated Julia GraphQL types" path = filename
-    end
-
-    if generate_functions
-        filename = joinpath(dir, "graphqlgen_functions.jl")
-        open("$filename", "w") do f
-            GraphQLGen.print(f, functions)
-        end
-        @info "Generated Julia GraphQL functions" path = filename
-    end
+    generate_from_schema(saved_files_dir, schema; generate_types, generate_functions)
 
     return nothing
 end
@@ -90,4 +64,76 @@ function generate(
     generate_functions::Bool = true,
 )
     generate(saved_files_dir, [schema_path]; generate_types, generate_functions)
+end
+
+"""
+    function generate_from_schema(
+        saved_files_dir::String,
+        schema::String;
+        generate_types::Bool = true,
+        generate_functions::Bool = true,
+    )
+
+Generate Julia code files for GraphQL types and functions.
+
+"graphqlgen_types.jl": contains all the GraphQL types
+
+"graphqlgen_functions.jl": contains all the GraphQL functions (mutations, queries, subscriptions)
+
+* `saved_files_dir`: directory where the generated files will be saved
+* `schema`: GraphQL schema as a string
+* `generate_types`: whether to generate "types.jl"
+* `generate_functions`: whether to generate "functons.jl"
+"""
+function generate_from_schema(
+    saved_files_dir::String,
+    schema::String;
+    generate_types::Bool = true,
+    generate_functions::Bool = true,
+)
+    # generate types and functions
+    types, functions = GraphQLGen.tojl(GraphQLGen.parse(schema))
+
+    types_filename = "graphqlgen_types.jl"
+    functions_filename = "graphqlgen_functions.jl"
+
+    dir = abspath(saved_files_dir)
+    d = splitpath(dir)[end]
+
+    !isdir(dir) && mkdir(dir)
+
+    filename = "$dir/$d.jl"
+    open(filename, "w") do f
+        Base.print(
+            f,
+            """
+            module $d
+
+            using StructTypes
+
+            include("$types_filename")
+            include("$functions_filename")
+
+            end # module $d
+            """,
+        )
+    end
+
+    if generate_types
+        filename = joinpath(dir, types_filename)
+        open("$filename", "w") do f
+            GraphQLGen.print(f, types)
+        end
+        @info "Generated Julia GraphQL types" path = filename
+    end
+
+    if generate_functions
+        filename = joinpath(dir, functions_filename)
+        open("$filename", "w") do f
+            GraphQLGen.print(f, functions)
+        end
+        @info "Generated Julia GraphQL functions" path = filename
+    end
+
+    return nothing
 end

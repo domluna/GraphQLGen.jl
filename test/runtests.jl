@@ -1,6 +1,7 @@
 using GraphQLGen
 using Test
 using Expronicon
+using Pkg
 
 @testset "GraphQLGen" begin
     @testset "get_leaf_type" begin
@@ -169,18 +170,39 @@ using Expronicon
         @test fields[2] == :(field2::Union{A,Missing,Nothing})
         @test fields[3] == :field3
 
-        @test exprs[1].args[end].head == :function
-        f = JLFunction(exprs[1].args[end])
-        funcdef = :(Base.getproperty(t::A, sym::Symbol))
+        @test exprs[1].args[end-1].head == :function
+        f = JLFunction(exprs[1].args[end-1])
         @test f.name == :(Base.getproperty)
+        @test length(f.args) == 2
+        @test f.args[1] == :(t::A)
+        @test f.args[2] == :(sym::Symbol)
 
         body = :(
-            if s === Symbol("field1")
+            if sym === Symbol("field1")
                 getfield(t, Symbol("field1"))::Union{C,Missing,Nothing}
-            elseif s === Symbol("field3")
+            elseif sym === Symbol("field3")
                 getfield(t, Symbol("field3"))::B
             else
-                getfield(t, s)
+                getfield(t, sym)
+            end
+        )
+        @test f.body == GraphQLGen.ExprPrettify.prettify(body)
+
+        @test exprs[1].args[end].head == :function
+        f = JLFunction(exprs[1].args[end])
+        @test f.name == :(Base.setproperty!)
+        @test length(f.args) == 3
+        @test f.args[1] == :(t::A)
+        @test f.args[2] == :(sym::Symbol)
+        @test f.args[3] == :(val::Any)
+
+        body = :(
+            if sym === Symbol("field1")
+                setfield!(t, Symbol("field1"), val::Union{C,Missing,Nothing})
+            elseif sym === Symbol("field3")
+                setfield!(t, Symbol("field3"), val::B)
+            else
+                setfield!(t, sym, val)
             end
         )
         @test f.body == GraphQLGen.ExprPrettify.prettify(body)
@@ -349,6 +371,33 @@ using Expronicon
             exprs = map(GraphQLGen.ExprPrettify.prettify, functions)
 
             @test exprs[1].args[2] == "\"\"\"\nFetches an object given its ID.\n\"\"\""
+        end
+    end
+    @testset "generate API" begin
+        td = tempname()
+        d = splitpath(td)[end]
+        pkgname = Symbol(d)
+        GraphQLGen.generate(td, "$(@__DIR__)/../example/schema.graphql")
+
+        Pkg.API.activate(td)
+        Pkg.API.add("StructTypes")
+
+        filepath = "$td/$pkgname.jl"
+
+        ex = :(include($filepath);
+        API = $pkgname)
+        eval(ex)
+
+        @testset "API get/set" begin
+            p = API.Person(; id = "22")
+            edge = API.FilmCharactersEdge(p, "film")
+            @test edge.node == p
+
+            edge.node = nothing
+            @test edge.node === nothing
+
+            edge.node = missing
+            @test edge.node === missing
         end
     end
 end

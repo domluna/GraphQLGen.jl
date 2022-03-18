@@ -94,7 +94,7 @@ end
 
 function jltype(name::Symbol, fields::Vector{JLKwField}, graph::Dict{Symbol,Set{Symbol}})
     ex = if haskey(graph, name)
-        get_property_expr = generate_custom_getproperty!(fields, name, graph[name])
+        get_property_expr = generate_getset!(fields, name, graph[name])
         st = JLKwStruct(; ismutable = true, name = name, fields = fields)
         quote
             $(codegen_ast(st))
@@ -395,15 +395,14 @@ gqlstr(t::RBNF.Token) = t.str
 gqlstr(::Nothing) = ""
 
 """
-    generate_custom_getproperty!(fields::Vector{JLKwField}, typename::Symbol, cyclic_types::Set{Symbol})
+    generate_getset!(fields::Vector{JLKwField}, typename::Symbol, cyclic_types::Set{Symbol})
 
-Generates a custom `Base.getproperty` function for the type `typename`. This is done
-in effort to preserve type inference of fields there the type has to be removed due to
-defining types in a cyclic order.
+Generates a custom `Base.getproperty` and `Base.setproperty!` function for the type `typename`. This is done
+in effort to preserve type inference of fields there the type has to be removed due to defining types in a cyclic order.
 
     !!! The `fields` argument is mutated by removing type information for cyclic fields.
 """
-function generate_custom_getproperty!(
+function generate_getset!(
     fields::Vector{JLKwField},
     typename::Symbol,
     cyclic_types::Set{Symbol},
@@ -427,17 +426,29 @@ function generate_custom_getproperty!(
 
     length(fnames) == 0 && return
 
-    ifexpr = JLIfElse()
+    get_ifexpr = JLIfElse()
     for i in 1:length(fnames)
         # using symbols with :symbol syntax is tricky in exprs
-        ifexpr[:(s === Symbol($("$(fnames[i])")))] =
+        get_ifexpr[:(sym === Symbol($("$(fnames[i])")))] =
             :(getfield(t, (Symbol($("$(fnames[i])"))))::$(ftypes[i]))
     end
-    ifexpr.otherwise = :(getfield(t, s))
+    get_ifexpr.otherwise = :(getfield(t, sym))
+
+    set_ifexpr = JLIfElse()
+    for i in 1:length(fnames)
+        # using symbols with :symbol syntax is tricky in exprs
+        set_ifexpr[:(sym === Symbol($("$(fnames[i])")))] =
+            :(setfield!(t, (Symbol($("$(fnames[i])"))), val::$(ftypes[i])))
+    end
+    set_ifexpr.otherwise = :(setfield!(t, sym, val))
 
     ex = quote
         function Base.getproperty(t::$typename, sym::Symbol)
-            $(codegen_ast(ifexpr))
+            $(codegen_ast(get_ifexpr))
+        end
+
+        function Base.setproperty!(t::$typename, sym::Symbol, val::Any)
+            $(codegen_ast(set_ifexpr))
         end
     end
 

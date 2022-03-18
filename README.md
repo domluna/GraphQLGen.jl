@@ -1,6 +1,9 @@
 # GraphQLGen.jl
 
+> **The `StructTypes` dependency is REQUIRED since various functions were generated so the types are automatically compatible with `StructTypes`.**
+
 Generates Julia types and functions from GraphQL schema. See the [example](./example) for usage.
+
 
 ## Quick Start
 
@@ -10,14 +13,32 @@ Generates Julia types and functions from GraphQL schema. See the [example](./exa
 # 
 # NOTE: You should do one call for all schema files rather than N seperate calls.
 julia> GraphQLGen.generate("GraphQLAPI", "schemas/")
+
+# This generates a module in the GraphQLAPI (intended to be used as a submodule of a project)
+# The file structure will be
+
+# | GraphQLAPI
+# --- GraphQLAPI.jl
+# --- graphqlgen_types.jl
+# --- graphqlgen_functions.jl
+
+# The contents of GraphQLAPI will be:
+
+module GraphQLAPI
+
+using StructTypes
+
+include("graphqlgen_types.jl")
+include("graphqlgen_functions.jl")
+
+end # module GraphQLAPI
+
 ```
 
-Now you'll have two files:
+Generated files:
 
 - `graphqlgen_types.jl`: contains all the GraphQL types
 - `graphqlgen_functions.jl`: contains all the GraphQL functions (mutations, queries, subscriptions). The intended use of these functions at the moment is to create easily create queries and variables such that they can be easily serialized for an HTTP request.
-
-You can import and use these types and functions however you wish but note **the `StructTypes` dependency is REQUIRED since various functions were generated so the types are automatically compatible with `StructTypes`.**
 
 ## Codegen Peculiarities
 

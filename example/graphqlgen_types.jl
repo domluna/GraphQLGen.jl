@@ -36,10 +36,17 @@ end
 StructTypes.StructType(::Type{FilmCharactersEdge}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{FilmCharactersEdge}) = true
 function Base.getproperty(t::FilmCharactersEdge, sym::Symbol)
-    if s === Symbol("node")
+    if sym === Symbol("node")
         getfield(t, Symbol("node"))::Union{Person,Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::FilmCharactersEdge, sym::Symbol, val::Any)
+    if sym === Symbol("node")
+        setfield!(t, Symbol("node"), val::Union{Person,Missing,Nothing})
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -52,7 +59,7 @@ mutable struct FilmCharactersConnection
     "A list of edges."
     edges::Union{Vector{Union{FilmCharactersEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     characters::Any
 end
 function FilmCharactersConnection(;
@@ -66,13 +73,24 @@ end
 StructTypes.StructType(::Type{FilmCharactersConnection}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{FilmCharactersConnection}) = true
 function Base.getproperty(t::FilmCharactersConnection, sym::Symbol)
-    if s === Symbol("characters")
+    if sym === Symbol("characters")
         getfield(
             t,
             Symbol("characters"),
         )::Union{Vector{Union{Person,Missing,Nothing}},Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::FilmCharactersConnection, sym::Symbol, val::Any)
+    if sym === Symbol("characters")
+        setfield!(
+            t,
+            Symbol("characters"),
+            val::Union{Vector{Union{Person,Missing,Nothing}},Missing,Nothing},
+        )
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -90,10 +108,17 @@ end
 StructTypes.StructType(::Type{StarshipFilmsEdge}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{StarshipFilmsEdge}) = true
 function Base.getproperty(t::StarshipFilmsEdge, sym::Symbol)
-    if s === Symbol("node")
+    if sym === Symbol("node")
         getfield(t, Symbol("node"))::Union{Film,Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::StarshipFilmsEdge, sym::Symbol, val::Any)
+    if sym === Symbol("node")
+        setfield!(t, Symbol("node"), val::Union{Film,Missing,Nothing})
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -106,7 +131,7 @@ mutable struct StarshipFilmsConnection
     "A list of edges."
     edges::Union{Vector{Union{StarshipFilmsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     films::Any
 end
 function StarshipFilmsConnection(;
@@ -120,13 +145,24 @@ end
 StructTypes.StructType(::Type{StarshipFilmsConnection}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{StarshipFilmsConnection}) = true
 function Base.getproperty(t::StarshipFilmsConnection, sym::Symbol)
-    if s === Symbol("films")
+    if sym === Symbol("films")
         getfield(
             t,
             Symbol("films"),
         )::Union{Vector{Union{Film,Missing,Nothing}},Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::StarshipFilmsConnection, sym::Symbol, val::Any)
+    if sym === Symbol("films")
+        setfield!(
+            t,
+            Symbol("films"),
+            val::Union{Vector{Union{Film,Missing,Nothing}},Missing,Nothing},
+        )
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -144,10 +180,17 @@ end
 StructTypes.StructType(::Type{StarshipPilotsEdge}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{StarshipPilotsEdge}) = true
 function Base.getproperty(t::StarshipPilotsEdge, sym::Symbol)
-    if s === Symbol("node")
+    if sym === Symbol("node")
         getfield(t, Symbol("node"))::Union{Person,Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::StarshipPilotsEdge, sym::Symbol, val::Any)
+    if sym === Symbol("node")
+        setfield!(t, Symbol("node"), val::Union{Person,Missing,Nothing})
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -160,7 +203,7 @@ mutable struct StarshipPilotsConnection
     "A list of edges."
     edges::Union{Vector{Union{StarshipPilotsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     pilots::Any
 end
 function StarshipPilotsConnection(;
@@ -174,13 +217,24 @@ end
 StructTypes.StructType(::Type{StarshipPilotsConnection}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{StarshipPilotsConnection}) = true
 function Base.getproperty(t::StarshipPilotsConnection, sym::Symbol)
-    if s === Symbol("pilots")
+    if sym === Symbol("pilots")
         getfield(
             t,
             Symbol("pilots"),
         )::Union{Vector{Union{Person,Missing,Nothing}},Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::StarshipPilotsConnection, sym::Symbol, val::Any)
+    if sym === Symbol("pilots")
+        setfield!(
+            t,
+            Symbol("pilots"),
+            val::Union{Vector{Union{Person,Missing,Nothing}},Missing,Nothing},
+        )
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -205,11 +259,11 @@ mutable struct Starship
     "The number of non-essential people this starship can transport."
     passengers::Union{String,Missing,Nothing}
     "\n  The maximum speed of this starship in atmosphere. null if this starship is\n  incapable of atmosphering flight.\n  "
-    maxAtmospheringSpeed::Union{Int32,Missing,Nothing}
+    maxAtmospheringSpeed::Union{Int,Missing,Nothing}
     "The class of this starships hyperdrive."
     hyperdriveRating::Union{Float64,Missing,Nothing}
     "\n  The Maximum number of Megalights this starship can travel in a standard hour.\n  A \"Megalight\" is a standard unit of distance and has never been defined before\n  within the Star Wars universe. This figure is only really useful for measuring\n  the difference in speed of starships. We can assume it is similar to AU, the\n  distance between our Sun (Sol) and Earth.\n  "
-    MGLT::Union{Int32,Missing,Nothing}
+    MGLT::Union{Int,Missing,Nothing}
     "The maximum number of kilograms that this starship can transport."
     cargoCapacity::Union{Float64,Missing,Nothing}
     "\n  The maximum length of time that this starship can provide consumables for its\n  entire crew without having to resupply.\n  "
@@ -291,7 +345,7 @@ mutable struct FilmStarshipsConnection
     "A list of edges."
     edges::Union{Vector{Union{FilmStarshipsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     starships::Union{Vector{Union{Starship,Missing,Nothing}},Missing,Nothing}
 end
@@ -320,10 +374,17 @@ end
 StructTypes.StructType(::Type{FilmVehiclesEdge}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{FilmVehiclesEdge}) = true
 function Base.getproperty(t::FilmVehiclesEdge, sym::Symbol)
-    if s === Symbol("node")
+    if sym === Symbol("node")
         getfield(t, Symbol("node"))::Union{Vehicle,Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::FilmVehiclesEdge, sym::Symbol, val::Any)
+    if sym === Symbol("node")
+        setfield!(t, Symbol("node"), val::Union{Vehicle,Missing,Nothing})
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -336,7 +397,7 @@ mutable struct FilmVehiclesConnection
     "A list of edges."
     edges::Union{Vector{Union{FilmVehiclesEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     vehicles::Any
 end
 function FilmVehiclesConnection(;
@@ -350,13 +411,24 @@ end
 StructTypes.StructType(::Type{FilmVehiclesConnection}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{FilmVehiclesConnection}) = true
 function Base.getproperty(t::FilmVehiclesConnection, sym::Symbol)
-    if s === Symbol("vehicles")
+    if sym === Symbol("vehicles")
         getfield(
             t,
             Symbol("vehicles"),
         )::Union{Vector{Union{Vehicle,Missing,Nothing}},Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::FilmVehiclesConnection, sym::Symbol, val::Any)
+    if sym === Symbol("vehicles")
+        setfield!(
+            t,
+            Symbol("vehicles"),
+            val::Union{Vector{Union{Vehicle,Missing,Nothing}},Missing,Nothing},
+        )
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -374,10 +446,17 @@ end
 StructTypes.StructType(::Type{FilmPlanetsEdge}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{FilmPlanetsEdge}) = true
 function Base.getproperty(t::FilmPlanetsEdge, sym::Symbol)
-    if s === Symbol("node")
+    if sym === Symbol("node")
         getfield(t, Symbol("node"))::Union{Planet,Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::FilmPlanetsEdge, sym::Symbol, val::Any)
+    if sym === Symbol("node")
+        setfield!(t, Symbol("node"), val::Union{Planet,Missing,Nothing})
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -390,7 +469,7 @@ mutable struct FilmPlanetsConnection
     "A list of edges."
     edges::Union{Vector{Union{FilmPlanetsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     planets::Any
 end
 function FilmPlanetsConnection(;
@@ -404,13 +483,24 @@ end
 StructTypes.StructType(::Type{FilmPlanetsConnection}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{FilmPlanetsConnection}) = true
 function Base.getproperty(t::FilmPlanetsConnection, sym::Symbol)
-    if s === Symbol("planets")
+    if sym === Symbol("planets")
         getfield(
             t,
             Symbol("planets"),
         )::Union{Vector{Union{Planet,Missing,Nothing}},Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::FilmPlanetsConnection, sym::Symbol, val::Any)
+    if sym === Symbol("planets")
+        setfield!(
+            t,
+            Symbol("planets"),
+            val::Union{Vector{Union{Planet,Missing,Nothing}},Missing,Nothing},
+        )
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -428,10 +518,17 @@ end
 StructTypes.StructType(::Type{SpeciesFilmsEdge}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{SpeciesFilmsEdge}) = true
 function Base.getproperty(t::SpeciesFilmsEdge, sym::Symbol)
-    if s === Symbol("node")
+    if sym === Symbol("node")
         getfield(t, Symbol("node"))::Union{Film,Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::SpeciesFilmsEdge, sym::Symbol, val::Any)
+    if sym === Symbol("node")
+        setfield!(t, Symbol("node"), val::Union{Film,Missing,Nothing})
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -444,7 +541,7 @@ mutable struct SpeciesFilmsConnection
     "A list of edges."
     edges::Union{Vector{Union{SpeciesFilmsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     films::Any
 end
 function SpeciesFilmsConnection(;
@@ -458,13 +555,24 @@ end
 StructTypes.StructType(::Type{SpeciesFilmsConnection}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{SpeciesFilmsConnection}) = true
 function Base.getproperty(t::SpeciesFilmsConnection, sym::Symbol)
-    if s === Symbol("films")
+    if sym === Symbol("films")
         getfield(
             t,
             Symbol("films"),
         )::Union{Vector{Union{Film,Missing,Nothing}},Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::SpeciesFilmsConnection, sym::Symbol, val::Any)
+    if sym === Symbol("films")
+        setfield!(
+            t,
+            Symbol("films"),
+            val::Union{Vector{Union{Film,Missing,Nothing}},Missing,Nothing},
+        )
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -482,10 +590,17 @@ end
 StructTypes.StructType(::Type{SpeciesPeopleEdge}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{SpeciesPeopleEdge}) = true
 function Base.getproperty(t::SpeciesPeopleEdge, sym::Symbol)
-    if s === Symbol("node")
+    if sym === Symbol("node")
         getfield(t, Symbol("node"))::Union{Person,Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::SpeciesPeopleEdge, sym::Symbol, val::Any)
+    if sym === Symbol("node")
+        setfield!(t, Symbol("node"), val::Union{Person,Missing,Nothing})
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -498,7 +613,7 @@ mutable struct SpeciesPeopleConnection
     "A list of edges."
     edges::Union{Vector{Union{SpeciesPeopleEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     people::Any
 end
 function SpeciesPeopleConnection(;
@@ -512,13 +627,24 @@ end
 StructTypes.StructType(::Type{SpeciesPeopleConnection}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{SpeciesPeopleConnection}) = true
 function Base.getproperty(t::SpeciesPeopleConnection, sym::Symbol)
-    if s === Symbol("people")
+    if sym === Symbol("people")
         getfield(
             t,
             Symbol("people"),
         )::Union{Vector{Union{Person,Missing,Nothing}},Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::SpeciesPeopleConnection, sym::Symbol, val::Any)
+    if sym === Symbol("people")
+        setfield!(
+            t,
+            Symbol("people"),
+            val::Union{Vector{Union{Person,Missing,Nothing}},Missing,Nothing},
+        )
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -535,7 +661,7 @@ mutable struct Species
     "The average height of this species in centimeters."
     averageHeight::Union{Float64,Missing,Nothing}
     "The average lifespan of this species in years, null if unknown."
-    averageLifespan::Union{Int32,Missing,Nothing}
+    averageLifespan::Union{Int,Missing,Nothing}
     "\n  Common eye colors for this species, null if this species does not typically\n  have eyes.\n  "
     eyeColors::Union{Vector{Union{String,Missing,Nothing}},Missing,Nothing}
     "\n  Common hair colors for this species, null if this species does not typically\n  have hair.\n  "
@@ -592,10 +718,17 @@ end
 StructTypes.StructType(::Type{Species}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{Species}) = true
 function Base.getproperty(t::Species, sym::Symbol)
-    if s === Symbol("homeworld")
+    if sym === Symbol("homeworld")
         getfield(t, Symbol("homeworld"))::Union{Planet,Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::Species, sym::Symbol, val::Any)
+    if sym === Symbol("homeworld")
+        setfield!(t, Symbol("homeworld"), val::Union{Planet,Missing,Nothing})
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -623,7 +756,7 @@ mutable struct FilmSpeciesConnection
     "A list of edges."
     edges::Union{Vector{Union{FilmSpeciesEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     species::Union{Vector{Union{Species,Missing,Nothing}},Missing,Nothing}
 end
@@ -645,7 +778,7 @@ mutable struct Film
     "The title of this film."
     title::Union{String,Missing,Nothing}
     "The episode number of this film."
-    episodeID::Union{Int32,Missing,Nothing}
+    episodeID::Union{Int,Missing,Nothing}
     "The opening paragraphs at the beginning of this film."
     openingCrawl::Union{String,Missing,Nothing}
     "The name of the director of this film."
@@ -726,7 +859,7 @@ mutable struct VehicleFilmsConnection
     "A list of edges."
     edges::Union{Vector{Union{VehicleFilmsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     films::Union{Vector{Union{Film,Missing,Nothing}},Missing,Nothing}
 end
@@ -755,10 +888,17 @@ end
 StructTypes.StructType(::Type{VehiclePilotsEdge}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{VehiclePilotsEdge}) = true
 function Base.getproperty(t::VehiclePilotsEdge, sym::Symbol)
-    if s === Symbol("node")
+    if sym === Symbol("node")
         getfield(t, Symbol("node"))::Union{Person,Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::VehiclePilotsEdge, sym::Symbol, val::Any)
+    if sym === Symbol("node")
+        setfield!(t, Symbol("node"), val::Union{Person,Missing,Nothing})
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -771,7 +911,7 @@ mutable struct VehiclePilotsConnection
     "A list of edges."
     edges::Union{Vector{Union{VehiclePilotsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     pilots::Any
 end
 function VehiclePilotsConnection(;
@@ -785,13 +925,24 @@ end
 StructTypes.StructType(::Type{VehiclePilotsConnection}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{VehiclePilotsConnection}) = true
 function Base.getproperty(t::VehiclePilotsConnection, sym::Symbol)
-    if s === Symbol("pilots")
+    if sym === Symbol("pilots")
         getfield(
             t,
             Symbol("pilots"),
         )::Union{Vector{Union{Person,Missing,Nothing}},Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::VehiclePilotsConnection, sym::Symbol, val::Any)
+    if sym === Symbol("pilots")
+        setfield!(
+            t,
+            Symbol("pilots"),
+            val::Union{Vector{Union{Person,Missing,Nothing}},Missing,Nothing},
+        )
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -816,7 +967,7 @@ mutable struct Vehicle
     "The number of non-essential people this vehicle can transport."
     passengers::Union{String,Missing,Nothing}
     "The maximum speed of this vehicle in atmosphere."
-    maxAtmospheringSpeed::Union{Int32,Missing,Nothing}
+    maxAtmospheringSpeed::Union{Int,Missing,Nothing}
     "The maximum number of kilograms that this vehicle can transport."
     cargoCapacity::Union{Float64,Missing,Nothing}
     "\n  The maximum length of time that this vehicle can provide consumables for its\n  entire crew without having to resupply.\n  "
@@ -894,7 +1045,7 @@ mutable struct PersonVehiclesConnection
     "A list of edges."
     edges::Union{Vector{Union{PersonVehiclesEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     vehicles::Union{Vector{Union{Vehicle,Missing,Nothing}},Missing,Nothing}
 end
@@ -933,7 +1084,7 @@ mutable struct PersonFilmsConnection
     "A list of edges."
     edges::Union{Vector{Union{PersonFilmsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     films::Union{Vector{Union{Film,Missing,Nothing}},Missing,Nothing}
 end
@@ -972,7 +1123,7 @@ mutable struct PersonStarshipsConnection
     "A list of edges."
     edges::Union{Vector{Union{PersonStarshipsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     starships::Union{Vector{Union{Starship,Missing,Nothing}},Missing,Nothing}
 end
@@ -1002,7 +1153,7 @@ mutable struct Person
     "\n  The hair color of this person. Will be \"unknown\" if not known or \"n/a\" if the\n  person does not have hair.\n  "
     hairColor::Union{String,Missing,Nothing}
     "The height of the person in centimeters."
-    height::Union{Int32,Missing,Nothing}
+    height::Union{Int,Missing,Nothing}
     "The mass of the person in kilograms."
     mass::Union{Float64,Missing,Nothing}
     "The skin color of this person."
@@ -1060,10 +1211,17 @@ end
 StructTypes.StructType(::Type{Person}) = StructTypes.Mutable()
 StructTypes.omitempties(::Type{Person}) = true
 function Base.getproperty(t::Person, sym::Symbol)
-    if s === Symbol("homeworld")
+    if sym === Symbol("homeworld")
         getfield(t, Symbol("homeworld"))::Union{Planet,Missing,Nothing}
     else
-        getfield(t, s)
+        getfield(t, sym)
+    end
+end
+function Base.setproperty!(t::Person, sym::Symbol, val::Any)
+    if sym === Symbol("homeworld")
+        setfield!(t, Symbol("homeworld"), val::Union{Planet,Missing,Nothing})
+    else
+        setfield!(t, sym, val)
     end
 end
 
@@ -1091,7 +1249,7 @@ mutable struct PlanetResidentsConnection
     "A list of edges."
     edges::Union{Vector{Union{PlanetResidentsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     residents::Union{Vector{Union{Person,Missing,Nothing}},Missing,Nothing}
 end
@@ -1130,7 +1288,7 @@ mutable struct PlanetFilmsConnection
     "A list of edges."
     edges::Union{Vector{Union{PlanetFilmsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     films::Union{Vector{Union{Film,Missing,Nothing}},Missing,Nothing}
 end
@@ -1153,11 +1311,11 @@ mutable struct Planet
     "The name of this planet."
     name::Union{String,Missing,Nothing}
     "The diameter of this planet in kilometers."
-    diameter::Union{Int32,Missing,Nothing}
+    diameter::Union{Int,Missing,Nothing}
     "\n  The number of standard hours it takes for this planet to complete a single\n  rotation on its axis.\n  "
-    rotationPeriod::Union{Int32,Missing,Nothing}
+    rotationPeriod::Union{Int,Missing,Nothing}
     "\n  The number of standard days it takes for this planet to complete a single orbit\n  of its local star.\n  "
-    orbitalPeriod::Union{Int32,Missing,Nothing}
+    orbitalPeriod::Union{Int,Missing,Nothing}
     "\n  A number denoting the gravity of this planet, where \"1\" is normal or 1 standard\n  G. \"2\" is twice or 2 standard Gs. \"0.5\" is half or 0.5 standard Gs.\n  "
     gravity::Union{String,Missing,Nothing}
     "The average population of sentient beings inhabiting this planet."
@@ -1267,7 +1425,7 @@ mutable struct VehiclesConnection
     "A list of edges."
     edges::Union{Vector{Union{VehiclesEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     vehicles::Union{Vector{Union{Vehicle,Missing,Nothing}},Missing,Nothing}
 end
@@ -1321,7 +1479,7 @@ mutable struct SpeciesConnection
     "A list of edges."
     edges::Union{Vector{Union{SpeciesEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     species::Union{Vector{Union{Species,Missing,Nothing}},Missing,Nothing}
 end
@@ -1345,7 +1503,7 @@ mutable struct PeopleConnection
     "A list of edges."
     edges::Union{Vector{Union{PeopleEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     people::Union{Vector{Union{Person,Missing,Nothing}},Missing,Nothing}
 end
@@ -1369,7 +1527,7 @@ mutable struct FilmsConnection
     "A list of edges."
     edges::Union{Vector{Union{FilmsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     films::Union{Vector{Union{Film,Missing,Nothing}},Missing,Nothing}
 end
@@ -1388,7 +1546,7 @@ mutable struct PlanetsConnection
     "A list of edges."
     edges::Union{Vector{Union{PlanetsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     planets::Union{Vector{Union{Planet,Missing,Nothing}},Missing,Nothing}
 end
@@ -1427,7 +1585,7 @@ mutable struct StarshipsConnection
     "A list of edges."
     edges::Union{Vector{Union{StarshipsEdge,Missing,Nothing}},Missing,Nothing}
     "\n  A count of the total number of objects in this connection, ignoring pagination.\n  This allows a client to fetch the first five objects by passing \"5\" as the\n  argument to \"first\", then fetch the total count so it could display \"5 of 83\",\n  for example.\n  "
-    totalCount::Union{Int32,Missing,Nothing}
+    totalCount::Union{Int,Missing,Nothing}
     "\n  A list of all of the objects returned in the connection. This is a convenience\n  field provided for quickly exploring the API; rather than querying for\n  \"{ edges { node } }\" when no edge data is needed, this field can be be used\n  instead. Note that when clients like Relay need to fetch the \"cursor\" field on\n  the edge to enable efficient pagination, this shortcut cannot be used, and the\n  full \"{ edges { node } }\" version should be used instead.\n  "
     starships::Union{Vector{Union{Starship,Missing,Nothing}},Missing,Nothing}
 end
