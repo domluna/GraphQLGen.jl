@@ -375,12 +375,18 @@ using Pkg
     end
     @testset "generate API" begin
         td = tempname()
-        pkgname = Symbol(splitdir(td)[end])
+        d = splitpath(td)[end]
+        pkgname = Symbol(d)
         GraphQLGen.generate(td, "$(@__DIR__)/../example/schema.graphql")
 
         Pkg.API.activate(td)
+        Pkg.API.add("StructTypes")
 
-        eval(:(using $pkgname; API = $pkgname))
+        filepath = "$td/$pkgname.jl"
+
+        ex = :(include($filepath);
+        API = $pkgname)
+        eval(ex)
 
         @testset "API get/set" begin
             p = API.Person(; id = "22")

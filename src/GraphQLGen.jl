@@ -2,7 +2,6 @@ module GraphQLGen
 
 using RBNF
 using Expronicon
-using Pkg
 
 include("types.jl")
 include("parser.jl")
