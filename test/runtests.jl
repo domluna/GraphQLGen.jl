@@ -1,6 +1,7 @@
 using GraphQLGen
 using Test
 using Expronicon
+using Pkg
 
 @testset "GraphQLGen" begin
     @testset "get_leaf_type" begin
@@ -375,25 +376,23 @@ using Expronicon
     end
     @testset "generate API" begin
         td = tempname()
+        pkgname = Symbol(splitdir(td)[end])
         GraphQLGen.generate(td, "$(@__DIR__)/../example/schema.graphql")
 
+        Pkg.API.activate(td)
 
-        eval(:(module API
-        using StructTypes
-        include("$td/graphqlgen_types.jl")
-        include("$td/graphqlgen_functions.jl")
-        end))
+        eval(:(using $pkgname; API = $pkgname))
 
-        @testset "get/set" begin
-        p = API.Person(;id="22")
-        edge = API.FilmCharactersEdge(p, "film")
-        @test edge.node == p
+        @testset "API get/set" begin
+            p = API.Person(;id="22")
+            edge = API.FilmCharactersEdge(p, "film")
+            @test edge.node == p
 
-        edge.node = nothing
-        @test edge.node === nothing
+            edge.node = nothing
+            @test edge.node === nothing
 
-        edge.node = missing
-        @test edge.node === missing
+            edge.node = missing
+            @test edge.node === missing
         end
     end
 end

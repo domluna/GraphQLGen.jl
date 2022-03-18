@@ -94,24 +94,27 @@ function generate_from_schema(
     # generate types and functions
     types, functions = GraphQLGen.tojl(GraphQLGen.parse(schema))
 
-    dir = abspath(saved_files_dir)
-    project_file = joinpath(dir, "Project.toml")
-    fresh_pkg = !isfile(project_file)
-
     types_filename = "graphqlgen_types.jl"
     functions_filename = "graphqlgen_functions.jl"
 
+    dir = abspath(saved_files_dir)
+    project_file = joinpath(dir, "Project.toml")
+    fresh_pkg = !isfile(project_file)
     d = splitpath(dir)[end]
 
     if fresh_pkg
-        Pkg.API.generate("$dir")
-        cd("$dir") do
+        @info "creating new project" module_name = d
+
+    # get current project information
+        pinfo = Pkg.project()
+
+        Pkg.API.generate(dir)
+        cd(dir) do
             Pkg.API.activate(".")
             Pkg.API.add("StructTypes")
         end
 
         filename = "$dir/src/$d.jl"
-        @info "" filename
         open(filename, "w") do f
             Base.print(f, """
             module $d
@@ -124,9 +127,10 @@ function generate_from_schema(
             end # module $d
                 """)
         end
+        pinfo.name === nothing ? Pkg.API.activate() : Pkg.API.activate(".")
+    else
+        @info "project already exists just updating files" module_name = d
     end
-    # reactivate current env
-    Pkg.API.activate(".")
 
     if generate_types
         filename = joinpath(dir, "src", types_filename)
