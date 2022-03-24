@@ -17,12 +17,14 @@ x = f("10")
 j = JSON3.write(x.variables)
 # output: "{\"id\":\"10\"}"
 
-p = example.Person(; id = "22")
-edge = example.FilmCharactersEdge(p, "film")
-@test edge.node == p
+@testset "API" begin
+    p = example.Person(; id = "22")
+    edge = example.FilmCharactersEdge(p, "film")
+    @test edge.node == p
 
-edge.node = nothing
-@test edge.node === nothing
+    edge.node = nothing
+    @test edge.node === nothing
 
-edge.node = missing
-@test edge.node === missing
+    edge.node = missing
+    @test edge.node === missing
+end
