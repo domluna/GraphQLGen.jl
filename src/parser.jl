@@ -5,6 +5,8 @@ Base.convert(::Type{Symbol}, t::RBNF.Token{:name}) = Symbol(t.str)
 Base.convert(::Type{Symbol}, t::RBNF.Token{:reserved}) = Symbol(t.str)
 Base.convert(::Type{Int}, t::RBNF.Token{:int_value}) = Base.parse(Int, t.str)
 Base.convert(::Type{Float64}, t::RBNF.Token{:float_value}) = Base.parse(Float64, t.str)
+Base.convert(::Type{Bool}, t::RBNF.Token{:bool_value}) = Base.parse(Bool, t.str)
+Base.convert(::Type{Missing}, t::RBNF.Token{:null_value}) = missing
 function Base.convert(::Type{String}, t::RBNF.Token{:str})
     startswith(t.str, "\"\"\"") ? String(t.str[4:end-3]) : String(t.str[2:end-1])
 end
@@ -19,7 +21,15 @@ RBNF.@parser GQL begin
     ignore{whitespace,comment,comma}
 
     @grammar
-    atom = (name | float_value | int_value | string_value | punctuator)
+    atom = (
+        name |
+        float_value |
+        int_value |
+        string_value |
+        punctuator |
+        bool_value |
+        null_value
+    )
 
     document::Document := [definitions = definition{*}]
     definition = (executable_definition | type_system_definition | type_system_extension)
@@ -74,16 +84,13 @@ RBNF.@parser GQL begin
         variable |
         int_value |
         float_value |
-        string_value |
         bool_value |
         null_value |
+        string_value |
         enum_value |
         list_value |
         object_value
     )
-
-    bool_value = ("true" | "false")
-    null_value = "null"
 
     # but not true, false, or null
     enum_value = name
@@ -296,6 +303,8 @@ RBNF.@parser GQL begin
     whitespace := r"\G\s+"
     comma := r"\G,"
 
+    bool_value := r"\G(true|false)"
+    null_value := r"\Gnull"
     name := r"\G[A-Za-z][_0-9A-Za-z]*"
     float_value := r"\G([0-9]+\.[0-9]*|[0-9]*\.[0.9]+)([eE][-+]?[0-9]+)?"
     int_value := r"\G([1-9]+[0-9]*|0)"

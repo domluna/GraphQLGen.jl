@@ -363,6 +363,8 @@ function jltype(t::ListType)
 end
 jltype(t::DefaultValue) = jltype(t.value)
 jltype(t::RBNF.Token) = Symbol(t.str)
+jltype(t::RBNF.Token{:bool_value}) = Base.parse(Bool, t.str)
+jltype(t::RBNF.Token{:null_value}) = missing
 jltype(t::RBNF.Token{:int_value}) = Base.parse(Int32, t.str)
 jltype(t::RBNF.Token{:float_value}) = Base.parse(Float64, t.str)
 jltype(t::RBNF.Token{:single_quote_string_value}) = convert(String, t)
