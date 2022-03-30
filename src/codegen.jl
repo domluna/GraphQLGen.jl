@@ -29,17 +29,22 @@ function get_schema_types(sd::SchemaDefinition)
     return schema_types
 end
 
-function tojl(doc::Document, scalar_type_map::Dict)
+getname(t::TypeDefinition) = jltype(t.type.name)
+getname(t) = jltype(t.name)
+
+function tojl(doc::Document, scalar_type_map::Dict; to_skip::Set{Symbol} = Set{Symbol}())
     schema_types = get_schema_types(doc)
     doc, revisited_graph = dagify(doc)
     types = Expr[]
     functions = Expr[]
 
     for d in doc
+        getname(d) in to_skip && continue
+
         if d isa TypeDefinition &&
            d.type isa ObjectTypeDefinition &&
            haskey(schema_types, jltype(d.type.name))
-            jlfuncs = jlfunction(d, schema_types)
+            jlfuncs = jlfunction(d, schema_types, to_skip)
             for f in jlfuncs
                 push!(functions, f)
             end
@@ -53,7 +58,7 @@ function tojl(doc::Document, scalar_type_map::Dict)
 
     return types, functions
 end
-tojl(doc::Document) = tojl(doc, Dict())
+tojl(doc::Document; to_skip::Set{Symbol} = Set{Symbol}()) = tojl(doc, Dict(); to_skip)
 
 jltype(x) = nothing
 
@@ -127,13 +132,19 @@ function jltype(t::ObjectTypeDefinition, graph::Dict{Symbol,Set{Symbol}})
     return jltype(name, fields, graph)
 end
 
-jlfunction(t::TypeDefinition, schema_types::Dict{Symbol,Symbol}) =
-    jlfunction(t.type, schema_types)
+jlfunction(t::TypeDefinition, schema_types::Dict{Symbol,Symbol}, to_skip::Set{Symbol}) =
+    jlfunction(t.type, schema_types, to_skip)
 
-function jlfunction(t::ObjectTypeDefinition, schema_types::Dict{Symbol,Symbol})
+function jlfunction(
+    t::ObjectTypeDefinition,
+    schema_types::Dict{Symbol,Symbol},
+    to_skip::Set{Symbol},
+)
     name = jltype(t.name)
-    functions = map(t.fields_definition) do fd
-        jlfunction(fd, schema_types[name])
+    functions = Expr[]
+    for fd in t.fields_definition
+        jltype(fd.name) in to_skip && continue
+        push!(functions, jlfunction(fd, schema_types[name]))
     end
 
     return functions

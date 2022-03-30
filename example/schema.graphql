@@ -2,6 +2,8 @@ schema {
   query: Root
 }
 
+scalar MyType
+
 """A single film."""
 type Film implements Node {
   """The title of this film."""
