@@ -5,6 +5,7 @@
         generate_types::Bool = true,
         generate_functions::Bool = true,
         generated_header::String = "",
+        to_skip::Set{Symbol} = Set{Symbol}(),
     )
 
 Generate Julia code files for GraphQL types and functions.
@@ -24,6 +25,7 @@ function generate(
     generate_types::Bool = true,
     generate_functions::Bool = true,
     generated_header::String = "",
+        to_skip::Set{Symbol} = Set{Symbol}(),
 )
     io = IOBuffer()
     for p in schema_paths
@@ -54,7 +56,7 @@ function generate(
 
     schema = String(take!(io))
 
-    generate_from_schema(saved_files_dir, schema; generate_types, generate_functions, generated_header)
+    generate_from_schema(saved_files_dir, schema; generate_types, generate_functions, generated_header, to_skip)
 
     return nothing
 end
@@ -65,8 +67,9 @@ function generate(
     generate_types::Bool = true,
     generate_functions::Bool = true,
     generated_header::String = "",
+        to_skip::Set{Symbol} = Set{Symbol}(),
 )
-    generate(saved_files_dir, [schema_path]; generate_types, generate_functions, generated_header)
+    generate(saved_files_dir, [schema_path]; generate_types, generate_functions, generated_header, to_skip)
 end
 
 """
@@ -75,6 +78,7 @@ end
         schema::String;
         generate_types::Bool = true,
         generate_functions::Bool = true,
+        to_skip::Set{Symbol} = Set{Symbol}(),
     )
 
 Generate Julia code files for GraphQL types and functions.
@@ -94,9 +98,10 @@ function generate_from_schema(
     generate_types::Bool = true,
     generate_functions::Bool = true,
     generated_header::String = "",
+    to_skip::Set{Symbol} = Set{Symbol}(),
 )
     # generate types and functions
-    types, functions = GraphQLGen.tojl(GraphQLGen.parse(schema))
+    types, functions = GraphQLGen.tojl(GraphQLGen.parse(schema); to_skip)
 
     types_filename = "graphqlgen_types.jl"
     functions_filename = "graphqlgen_functions.jl"

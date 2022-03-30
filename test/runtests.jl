@@ -425,7 +425,7 @@ using Pkg
         td = tempname()
         d = splitpath(td)[end]
         pkgname = Symbol(d)
-        GraphQLGen.generate(td, "$(@__DIR__)/../example/schema.graphql")
+        GraphQLGen.generate(td, "$(@__DIR__)/../example/schema.graphql"; to_skip = Set([:MyType]))
 
         Pkg.API.activate(td)
         Pkg.API.add("StructTypes")
@@ -446,6 +446,13 @@ using Pkg
 
             edge.node = missing
             @test edge.node === missing
+
+            try 
+                API.MyType
+            catch err
+                @test typeof(err) == UndefVarError
+                @test err.var == :MyType
+            end
         end
     end
 
