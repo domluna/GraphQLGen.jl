@@ -211,7 +211,7 @@ function jlfunction(t::FieldDefinition, stype::Symbol)
     sort!(funcsigs, by = s -> s.default)
 
     sig = join(map(funcsigs) do s
-        v = "$(s.name): $(s.typ)"
+        v = "\$$(s.name): $(s.typ)"
         if s.default != ""
             v *= " = $(s.default)"
         end

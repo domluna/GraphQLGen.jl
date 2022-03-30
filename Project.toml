@@ -1,7 +1,7 @@
 name = "GraphQLGen"
 uuid = "e6c1444f-5479-4b7d-afd0-998686a721e1"
 authors = ["Dominique Luna <dluna132@gmail.com>"]
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 Expronicon = "6b7a57c9-7cc1-4fdf-b7f5-e857abae3636"
