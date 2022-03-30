@@ -371,6 +371,21 @@ using Pkg
             exprs = map(GraphQLGen.ExprPrettify.prettify, functions)
 
             @test exprs[1].args[2] == "\"\"\"\nFetches an object given its ID.\n\"\"\""
+
+            body = :(
+                function (f::node)(id::String;)
+                    q = (inp -> begin
+                            s = "query Node(\$id: ID!) {\n    node(id: \$id) {\n"
+                            s *= inp
+                            s *= "    }\n}\n"
+                        end)
+                    query = q(f.query)
+                    variables = Dict("id" => id)
+                    filter!((v -> !(isnothing(v[2]))), variables)
+                    return (; query, variables)
+                end
+            )
+            @test exprs[1].args[3] == GraphQLGen.ExprPrettify.prettify(body)
         end
     end
 
