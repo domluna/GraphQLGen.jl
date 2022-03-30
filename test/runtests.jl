@@ -413,7 +413,10 @@ using Pkg
         }
 
         """
-        types, functions = GraphQLGen.tojl(GraphQLGen.parse(str); to_skip = Set([:U, :C, :A, :S, :E, :query1, :Mutation]))
+        types, functions = GraphQLGen.tojl(
+            GraphQLGen.parse(str);
+            to_skip = Set([:U, :C, :A, :S, :E, :query1, :Mutation]),
+        )
         @test length(types) == 0
         @test length(functions) == 1
 
@@ -425,7 +428,11 @@ using Pkg
         td = tempname()
         d = splitpath(td)[end]
         pkgname = Symbol(d)
-        GraphQLGen.generate(td, "$(@__DIR__)/../example/schema.graphql"; to_skip = Set([:MyType]))
+        GraphQLGen.generate(
+            td,
+            "$(@__DIR__)/../example/schema.graphql";
+            to_skip = Set([:MyType]),
+        )
 
         Pkg.API.activate(td)
         Pkg.API.add("StructTypes")
@@ -447,7 +454,7 @@ using Pkg
             edge.node = missing
             @test edge.node === missing
 
-            try 
+            try
                 API.MyType
             catch err
                 @test typeof(err) == UndefVarError
@@ -455,5 +462,4 @@ using Pkg
             end
         end
     end
-
 end

@@ -25,7 +25,7 @@ function generate(
     generate_types::Bool = true,
     generate_functions::Bool = true,
     generated_header::String = "",
-        to_skip::Set{Symbol} = Set{Symbol}(),
+    to_skip::Set{Symbol} = Set{Symbol}(),
 )
     io = IOBuffer()
     for p in schema_paths
@@ -56,7 +56,14 @@ function generate(
 
     schema = String(take!(io))
 
-    generate_from_schema(saved_files_dir, schema; generate_types, generate_functions, generated_header, to_skip)
+    generate_from_schema(
+        saved_files_dir,
+        schema;
+        generate_types,
+        generate_functions,
+        generated_header,
+        to_skip,
+    )
 
     return nothing
 end
@@ -67,9 +74,16 @@ function generate(
     generate_types::Bool = true,
     generate_functions::Bool = true,
     generated_header::String = "",
-        to_skip::Set{Symbol} = Set{Symbol}(),
+    to_skip::Set{Symbol} = Set{Symbol}(),
 )
-    generate(saved_files_dir, [schema_path]; generate_types, generate_functions, generated_header, to_skip)
+    generate(
+        saved_files_dir,
+        [schema_path];
+        generate_types,
+        generate_functions,
+        generated_header,
+        to_skip,
+    )
 end
 
 """
