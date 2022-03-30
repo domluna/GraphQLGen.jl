@@ -373,6 +373,54 @@ using Pkg
             @test exprs[1].args[2] == "\"\"\"\nFetches an object given its ID.\n\"\"\""
         end
     end
+
+    @testset "skip" begin
+        str = """
+        schema {
+          query: Query
+          mutation: Mutation
+          subscription: Subscription
+        }
+
+        union U = U1 | A
+
+        type C {
+           field1: D
+        }
+        input A {
+          field1: [B]
+        }
+
+        scalar S
+
+        enum E {
+           E1
+           E2
+        }
+
+
+        type Query {
+          query1(id: ID!): Node
+          query2(id: ID!): Node
+        }
+
+        type Mutation {
+          mutation1(id: ID!): Node
+          mutation2(id: ID!): Node
+        }
+
+        type Subscription {
+        }
+
+        """
+        types, functions = GraphQLGen.tojl(GraphQLGen.parse(str); to_skip = Set([:U, :C, :A, :S, :E, :query1, :Mutation]))
+        @test length(types) == 0
+        @test length(functions) == 1
+
+        exprs = map(GraphQLGen.ExprPrettify.prettify, functions)
+        @test exprs[1].args[1].args[2] == :query2
+    end
+
     @testset "generate API" begin
         td = tempname()
         d = splitpath(td)[end]
@@ -400,4 +448,5 @@ using Pkg
             @test edge.node === missing
         end
     end
+
 end

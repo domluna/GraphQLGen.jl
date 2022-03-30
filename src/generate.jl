@@ -4,6 +4,7 @@
         schema_paths::Vector{String};
         generate_types::Bool = true,
         generate_functions::Bool = true,
+        generated_header::String = "",
     )
 
 Generate Julia code files for GraphQL types and functions.
@@ -22,6 +23,7 @@ function generate(
     schema_paths::Vector{String};
     generate_types::Bool = true,
     generate_functions::Bool = true,
+    generated_header::String = "",
 )
     io = IOBuffer()
     for p in schema_paths
@@ -52,7 +54,7 @@ function generate(
 
     schema = String(take!(io))
 
-    generate_from_schema(saved_files_dir, schema; generate_types, generate_functions)
+    generate_from_schema(saved_files_dir, schema; generate_types, generate_functions, generated_header)
 
     return nothing
 end
@@ -62,8 +64,9 @@ function generate(
     schema_path::String;
     generate_types::Bool = true,
     generate_functions::Bool = true,
+    generated_header::String = "",
 )
-    generate(saved_files_dir, [schema_path]; generate_types, generate_functions)
+    generate(saved_files_dir, [schema_path]; generate_types, generate_functions, generated_header)
 end
 
 """
@@ -90,6 +93,7 @@ function generate_from_schema(
     schema::String;
     generate_types::Bool = true,
     generate_functions::Bool = true,
+    generated_header::String = "",
 )
     # generate types and functions
     types, functions = GraphQLGen.tojl(GraphQLGen.parse(schema))
@@ -104,6 +108,7 @@ function generate_from_schema(
 
     filename = "$dir/$d.jl"
     open(filename, "w") do f
+        write(f, generated_header)
         Base.print(
             f,
             """
@@ -122,6 +127,7 @@ function generate_from_schema(
     if generate_types
         filename = joinpath(dir, types_filename)
         open("$filename", "w") do f
+            write(f, generated_header)
             GraphQLGen.print(f, types)
         end
         @info "Generated Julia GraphQL types" path = filename
@@ -130,6 +136,7 @@ function generate_from_schema(
     if generate_functions
         filename = joinpath(dir, functions_filename)
         open("$filename", "w") do f
+            write(f, generated_header)
             GraphQLGen.print(f, functions)
         end
         @info "Generated Julia GraphQL functions" path = filename
