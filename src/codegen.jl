@@ -32,7 +32,11 @@ end
 getname(t::TypeDefinition) = jltype(t.type.name)
 getname(t) = jltype(t.name)
 
-function tojl(doc::Document, scalar_type_map::Dict; to_skip::Set{Symbol} = Set{Symbol}())
+function tojl(
+    doc::Document;
+    scalar_type_map::Dict = Dict(),
+    to_skip::Set{Symbol} = Set{Symbol}(),
+)
     schema_types = get_schema_types(doc)
     doc, revisited_graph = dagify(doc)
     types = Expr[]
@@ -58,7 +62,6 @@ function tojl(doc::Document, scalar_type_map::Dict; to_skip::Set{Symbol} = Set{S
 
     return types, functions
 end
-tojl(doc::Document; to_skip::Set{Symbol} = Set{Symbol}()) = tojl(doc, Dict(); to_skip)
 
 jltype(x) = nothing
 
@@ -245,7 +248,7 @@ function jlfunction(t::FieldDefinition, stype::Symbol)
             end
 
         query = q(f.query)
-        variables = Dict($(variable_args...), $(variable_kw...))
+        variables = Dict{String,Any}($(variable_args...), $(variable_kw...))
         filter!(v -> !isnothing(v[2]), variables)
 
         return (; query, variables)

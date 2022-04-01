@@ -28,7 +28,7 @@ using Pkg
         scalar C
         """
         scalar_type_map = Dict(:A => :Point, :B => Vector{UInt8})
-        types, _ = GraphQLGen.tojl(GraphQLGen.parse(str), scalar_type_map)
+        types, _ = GraphQLGen.tojl(GraphQLGen.parse(str); scalar_type_map)
         exprs = map(GraphQLGen.ExprPrettify.prettify, types)
         @test exprs[1] == :(const A = Point)
         @test exprs[2].args[1].head == :(=)
@@ -380,7 +380,7 @@ using Pkg
                             s *= "    }\n}\n"
                         end)
                     query = q(f.query)
-                    variables = Dict("id" => id)
+                    variables = Dict{String,Any}("id" => id)
                     filter!((v -> !(isnothing(v[2]))), variables)
                     return (; query, variables)
                 end
@@ -451,6 +451,9 @@ using Pkg
             "$(@__DIR__)/../example/schema.graphql";
             to_skip = Set([:MyType]),
             generated_header = header,
+            scalar_type_map = Dict(
+                :MyType2 => :Int64,
+            ),
         )
 
         Pkg.API.activate(td)
@@ -486,6 +489,10 @@ using Pkg
         @testset "API generated header" begin
             s = String(read(filepath))
             @test startswith(s, header)
+        end
+
+        @testset "API scalar type map" begin
+            @test API.MyType2 == Int64
         end
     end
 end

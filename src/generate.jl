@@ -6,18 +6,21 @@
         generate_functions::Bool = true,
         generated_header::String = "",
         to_skip::Set{Symbol} = Set{Symbol}(),
+        scalar_type_map::Dict = Dict(),
     )
 
 Generate Julia code files for GraphQL types and functions.
 
-"graphqlgen_types.jl": contains all the GraphQL types
-
-"graphqlgen_functions.jl": contains all the GraphQL functions (mutations, queries, subscriptions)
+- "graphqlgen_types.jl": contains all the GraphQL types
+- "graphqlgen_functions.jl": contains all the GraphQL functions (mutations, queries, subscriptions)
 
 * `saved_files_dir`: directory where the generated files will be saved
 * `schema_paths`: list of paths to GraphQL schema files. This can be a file or a directory. If it's a directory, it will be recursively searched for GraphQL schema files.
-* `generate_types`: whether to generate "types.jl"
-* `generate_functions`: whether to generate "functons.jl"
+* `generate_types`: whether to generate "graphqlgen_types.jl"
+* `generate_functions`: whether to generate "graphqlgen_functions.jl"
+* `generated_header`: header prepended to generated files
+* `to_skip`: types or functions to skip generating
+* `scalar_type_map`: mapping of GraphQL scalar types to their corresponding Julia types
 """
 function generate(
     saved_files_dir::String,
@@ -26,6 +29,7 @@ function generate(
     generate_functions::Bool = true,
     generated_header::String = "",
     to_skip::Set{Symbol} = Set{Symbol}(),
+    scalar_type_map::Dict = Dict(),
 )
     io = IOBuffer()
     for p in schema_paths
@@ -63,6 +67,7 @@ function generate(
         generate_functions,
         generated_header,
         to_skip,
+        scalar_type_map,
     )
 
     return nothing
@@ -75,6 +80,7 @@ function generate(
     generate_functions::Bool = true,
     generated_header::String = "",
     to_skip::Set{Symbol} = Set{Symbol}(),
+    scalar_type_map::Dict = Dict(),
 )
     generate(
         saved_files_dir,
@@ -83,6 +89,7 @@ function generate(
         generate_functions,
         generated_header,
         to_skip,
+        scalar_type_map,
     )
 end
 
@@ -92,19 +99,23 @@ end
         schema::String;
         generate_types::Bool = true,
         generate_functions::Bool = true,
+        generated_header::String = "",
         to_skip::Set{Symbol} = Set{Symbol}(),
+        scalar_type_map::Dict = Dict(),
     )
 
 Generate Julia code files for GraphQL types and functions.
 
-"graphqlgen_types.jl": contains all the GraphQL types
-
-"graphqlgen_functions.jl": contains all the GraphQL functions (mutations, queries, subscriptions)
+- "graphqlgen_types.jl": contains all the GraphQL types
+- "graphqlgen_functions.jl": contains all the GraphQL functions (mutations, queries, subscriptions)
 
 * `saved_files_dir`: directory where the generated files will be saved
-* `schema`: GraphQL schema as a string
-* `generate_types`: whether to generate "types.jl"
-* `generate_functions`: whether to generate "functons.jl"
+* `schema_paths`: list of paths to GraphQL schema files. This can be a file or a directory. If it's a directory, it will be recursively searched for GraphQL schema files.
+* `generate_types`: whether to generate "graphqlgen_types.jl"
+* `generate_functions`: whether to generate "graphqlgen_functions.jl"
+* `generated_header`: header prepended to generated files
+* `to_skip`: types or functions to skip generating
+* `scalar_type_map`: mapping of GraphQL scalar types to their corresponding Julia types
 """
 function generate_from_schema(
     saved_files_dir::String,
@@ -113,9 +124,10 @@ function generate_from_schema(
     generate_functions::Bool = true,
     generated_header::String = "",
     to_skip::Set{Symbol} = Set{Symbol}(),
+    scalar_type_map::Dict = Dict(),
 )
     # generate types and functions
-    types, functions = GraphQLGen.tojl(GraphQLGen.parse(schema); to_skip)
+    types, functions = GraphQLGen.tojl(GraphQLGen.parse(schema); scalar_type_map, to_skip)
 
     types_filename = "graphqlgen_types.jl"
     functions_filename = "graphqlgen_functions.jl"
