@@ -4,6 +4,58 @@
 
 Generates Julia types and functions from GraphQL schema. See the [example](./example) for usage.
 
+## API
+
+```julia
+"""
+    function generate(
+        codegen_dir::String,
+        schema_paths::Vector{String};
+        generate_types::Bool = true,
+        generate_functions::Bool = true,
+        generated_header::String = "",
+        to_skip::Set{Symbol} = Set{Symbol}(),
+        scalar_type_map::Dict = Dict(),
+    )
+
+		function generate(
+				codegen_dir::String,
+				schema_path::String;
+				generate_types::Bool = true,
+				generate_functions::Bool = true,
+				generated_header::String = "",
+				to_skip::Set{Symbol} = Set{Symbol}(),
+				scalar_type_map::Dict = Dict(),
+		)
+
+    function generate_from_schema(
+        codegen_dir::String,
+        schema::String;
+        generate_types::Bool = true,
+        generate_functions::Bool = true,
+        generated_header::String = "",
+        to_skip::Set{Symbol} = Set{Symbol}(),
+        scalar_type_map::Dict = Dict(),
+    )
+
+Generate Julia code files for GraphQL types and functions.
+
+- "graphqlgen_types.jl": contains all the GraphQL types
+- "graphqlgen_functions.jl": contains all the GraphQL functions (mutations, queries, subscriptions)
+
+* `codegen_dir`: directory where the generated files will be saved
+* `schema_paths`: list of paths to GraphQL schema files. This can be a file or a directory. If it's a directory, it will be recursively searched for GraphQL schema files.
+
+* `generate_types`: whether to generate "graphqlgen_types.jl"
+* `generate_functions`: whether to generate "graphqlgen_functions.jl"
+* `generated_header`: header prepended to generated files
+* `to_skip`: types or functions to skip generating
+* `scalar_type_map`: mapping of GraphQL scalar types to their corresponding Julia types
+"""
+```
+
+`generate_from_schema` has the same API as `generate` but the second argument is the schema itself rather than the file of the schema.
+
 
 ## Quick Start
 
@@ -34,6 +86,8 @@ include("graphqlgen_functions.jl")
 end # module GraphQLAPI
 
 ```
+
+> You do not need to use `GraphQLAPI.jl`, in-fact it may be preferable to just include the types and functions files themselves or create your own submodule.
 
 Generated files:
 

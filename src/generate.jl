@@ -1,6 +1,6 @@
 """
     function generate(
-        saved_files_dir::String,
+        codegen_dir::String,
         schema_paths::Vector{String};
         generate_types::Bool = true,
         generate_functions::Bool = true,
@@ -14,7 +14,7 @@ Generate Julia code files for GraphQL types and functions.
 - "graphqlgen_types.jl": contains all the GraphQL types
 - "graphqlgen_functions.jl": contains all the GraphQL functions (mutations, queries, subscriptions)
 
-* `saved_files_dir`: directory where the generated files will be saved
+* `codegen_dir`: directory where the generated files will be saved
 * `schema_paths`: list of paths to GraphQL schema files. This can be a file or a directory. If it's a directory, it will be recursively searched for GraphQL schema files.
 * `generate_types`: whether to generate "graphqlgen_types.jl"
 * `generate_functions`: whether to generate "graphqlgen_functions.jl"
@@ -23,7 +23,7 @@ Generate Julia code files for GraphQL types and functions.
 * `scalar_type_map`: mapping of GraphQL scalar types to their corresponding Julia types
 """
 function generate(
-    saved_files_dir::String,
+    codegen_dir::String,
     schema_paths::Vector{String};
     generate_types::Bool = true,
     generate_functions::Bool = true,
@@ -61,7 +61,7 @@ function generate(
     schema = String(take!(io))
 
     generate_from_schema(
-        saved_files_dir,
+        codegen_dir,
         schema;
         generate_types,
         generate_functions,
@@ -74,7 +74,7 @@ function generate(
 end
 
 function generate(
-    saved_files_dir::String,
+    codegen_dir::String,
     schema_path::String;
     generate_types::Bool = true,
     generate_functions::Bool = true,
@@ -83,7 +83,7 @@ function generate(
     scalar_type_map::Dict = Dict(),
 )
     generate(
-        saved_files_dir,
+        codegen_dir,
         [schema_path];
         generate_types,
         generate_functions,
@@ -95,7 +95,7 @@ end
 
 """
     function generate_from_schema(
-        saved_files_dir::String,
+        codegen_dir::String,
         schema::String;
         generate_types::Bool = true,
         generate_functions::Bool = true,
@@ -109,7 +109,7 @@ Generate Julia code files for GraphQL types and functions.
 - "graphqlgen_types.jl": contains all the GraphQL types
 - "graphqlgen_functions.jl": contains all the GraphQL functions (mutations, queries, subscriptions)
 
-* `saved_files_dir`: directory where the generated files will be saved
+* `codegen_dir`: directory where the generated files will be saved
 * `schema_paths`: list of paths to GraphQL schema files. This can be a file or a directory. If it's a directory, it will be recursively searched for GraphQL schema files.
 * `generate_types`: whether to generate "graphqlgen_types.jl"
 * `generate_functions`: whether to generate "graphqlgen_functions.jl"
@@ -118,7 +118,7 @@ Generate Julia code files for GraphQL types and functions.
 * `scalar_type_map`: mapping of GraphQL scalar types to their corresponding Julia types
 """
 function generate_from_schema(
-    saved_files_dir::String,
+    codegen_dir::String,
     schema::String;
     generate_types::Bool = true,
     generate_functions::Bool = true,
@@ -132,7 +132,7 @@ function generate_from_schema(
     types_filename = "graphqlgen_types.jl"
     functions_filename = "graphqlgen_functions.jl"
 
-    dir = abspath(saved_files_dir)
+    dir = abspath(codegen_dir)
     d = splitpath(dir)[end]
 
     !isdir(dir) && mkdir(dir)
