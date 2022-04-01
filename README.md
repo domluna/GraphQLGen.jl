@@ -18,16 +18,6 @@ Generates Julia types and functions from GraphQL schema. See the [example](./exa
         scalar_type_map::Dict = Dict(),
     )
 
-		function generate(
-				codegen_dir::String,
-				schema_path::String;
-				generate_types::Bool = true,
-				generate_functions::Bool = true,
-				generated_header::String = "",
-				to_skip::Set{Symbol} = Set{Symbol}(),
-				scalar_type_map::Dict = Dict(),
-		)
-
     function generate_from_schema(
         codegen_dir::String,
         schema::String;
@@ -54,7 +44,7 @@ Generate Julia code files for GraphQL types and functions.
 """
 ```
 
-`generate_from_schema` has the same API as `generate` but the second argument is the schema itself rather than the file of the schema.
+> `generate_from_schema` has the same API as `generate` but the second argument is the schema itself rather than the file(s) of the schema.
 
 
 ## Quick Start
