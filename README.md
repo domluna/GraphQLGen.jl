@@ -1,7 +1,5 @@
 # GraphQLGen.jl
 
-> **The `StructTypes` dependency is REQUIRED since various functions were generated so the types are automatically compatible with `StructTypes`.**
-
 Generates Julia types and functions from GraphQL schema. See the [example](./example) for usage.
 
 ## API
@@ -67,8 +65,6 @@ julia> GraphQLGen.generate("GraphQLAPI", "schemas/")
 # The contents of GraphQLAPI will be:
 
 module GraphQLAPI
-
-using StructTypes
 
 include("graphqlgen_types.jl")
 include("graphqlgen_functions.jl")

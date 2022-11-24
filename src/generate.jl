@@ -30,6 +30,7 @@ function generate(
     generated_header::String = "",
     to_skip::Set{Symbol} = Set{Symbol}(),
     scalar_type_map::Dict = Dict(),
+    root_abstract_type::Union{Nothing,String} = nothing,
 )
     io = IOBuffer()
     for p in schema_paths
@@ -68,6 +69,7 @@ function generate(
         generated_header,
         to_skip,
         scalar_type_map,
+    root_abstract_type
     )
 
     return nothing
@@ -81,6 +83,7 @@ function generate(
     generated_header::String = "",
     to_skip::Set{Symbol} = Set{Symbol}(),
     scalar_type_map::Dict = Dict(),
+    root_abstract_type::Union{Nothing,String} = nothing,
 )
     generate(
         codegen_dir,
@@ -90,6 +93,7 @@ function generate(
         generated_header,
         to_skip,
         scalar_type_map,
+root_abstract_type
     )
 end
 
@@ -125,9 +129,10 @@ function generate_from_schema(
     generated_header::String = "",
     to_skip::Set{Symbol} = Set{Symbol}(),
     scalar_type_map::Dict = Dict(),
+    root_abstract_type::Union{Nothing,String} = nothing,
 )
     # generate types and functions
-    types, functions = GraphQLGen.tojl(GraphQLGen.parse(schema); scalar_type_map, to_skip)
+    types, functions = GraphQLGen.tojl(GraphQLGen.parse(schema); scalar_type_map, to_skip, root_abstract_type)
 
     types_filename = "graphqlgen_types.jl"
     functions_filename = "graphqlgen_functions.jl"
