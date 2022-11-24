@@ -107,19 +107,12 @@ function jltype(name::Symbol, fields::Vector{JLKwField}, graph::Dict{Symbol,Set{
         quote
             $(codegen_ast(st))
 
-            StructTypes.StructType(::Type{$name}) = StructTypes.Mutable()
-
-            StructTypes.omitempties(::Type{$name}) = true
-
             $(codegen_ast(get_property_expr))
         end
     else
         st = JLKwStruct(; ismutable = true, name = name, fields = fields)
         quote
             $(codegen_ast(st))
-
-            StructTypes.StructType(::Type{$name}) = StructTypes.Mutable()
-            StructTypes.omitempties(::Type{$name}) = true
         end
     end
 

@@ -145,8 +145,6 @@ function generate_from_schema(
             """
             module $d
 
-            using StructTypes
-
             include("$types_filename")
             include("$functions_filename")
 

@@ -457,7 +457,6 @@ using Pkg
         )
 
         Pkg.API.activate(td)
-        Pkg.API.add("StructTypes")
 
         filepath = "$td/$pkgname.jl"
 
