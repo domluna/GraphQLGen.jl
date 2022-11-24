@@ -18,13 +18,12 @@ function get_schema_types(doc::Document)
 end
 
 struct Config
-    root_abstract_type::Union{Nothing,String}
+    root_abstract_type::Union{Nothing,Symbol}
     scalar_type_map::Dict
     to_skip::Set{Symbol}
     schema_types::Dict{Symbol,Symbol}
     graph::Dict{Symbol,Set{Symbol}}
 end
-
 
 function get_schema_types(sd::SchemaDefinition)
     schema_types = Dict{Symbol,Symbol}()
@@ -45,20 +44,14 @@ function tojl(
     doc::Document;
     scalar_type_map::Dict = Dict(),
     to_skip::Set{Symbol} = Set{Symbol}(),
-    root_abstract_type::Union{Nothing,String} = nothing,
+    root_abstract_type::Union{Nothing,Symbol} = nothing,
 )
     schema_types = get_schema_types(doc)
     doc, graph = dagify(doc)
     types = Expr[]
     functions = Expr[]
 
-    config = Config(
-        root_abstract_type,
-        scalar_type_map,
-        to_skip,
-        schema_types,
-        graph,
-    )
+    config = Config(root_abstract_type, scalar_type_map, to_skip, schema_types, graph)
 
     for d in doc
         getname(d) in config.to_skip && continue
@@ -83,10 +76,7 @@ end
 
 jltype(x) = nothing
 
-function jltype(
-    t::TypeDefinition,
-    config::Config,
-)
+function jltype(t::TypeDefinition, config::Config)
     typ = t.type
     ex = if typ isa ScalarTypeDefinition
         jltype(typ, config)
@@ -120,14 +110,24 @@ end
 function jltype(name::Symbol, fields::Vector{JLKwField}, config::Config)
     ex = if haskey(config.graph, name)
         get_property_expr = generate_getset!(fields, name, config.graph[name])
-        st = JLKwStruct(; ismutable = true, name = name, fields = fields, supertype = config.root_abstract_type)
+        st = JLKwStruct(;
+            ismutable = true,
+            name = name,
+            fields = fields,
+            supertype = config.root_abstract_type,
+        )
         quote
             $(codegen_ast(st))
 
             $(codegen_ast(get_property_expr))
         end
     else
-        st = JLKwStruct(; ismutable = true, name = name, fields = fields, supertype = config.root_abstract_type)
+        st = JLKwStruct(;
+            ismutable = true,
+            name = name,
+            fields = fields,
+            supertype = config.root_abstract_type,
+        )
         quote
             $(codegen_ast(st))
         end
@@ -145,13 +145,9 @@ function jltype(t::ObjectTypeDefinition, config::Config)
     return jltype(name, fields, config)
 end
 
-jlfunction(t::TypeDefinition, config::Config) =
-    jlfunction(t.type, config)
+jlfunction(t::TypeDefinition, config::Config) = jlfunction(t.type, config)
 
-function jlfunction(
-    t::ObjectTypeDefinition,
-    config::Config,
-)
+function jlfunction(t::ObjectTypeDefinition, config::Config)
     name = jltype(t.name)
     functions = Expr[]
     for fd in t.fields_definition
