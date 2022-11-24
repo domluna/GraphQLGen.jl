@@ -1,7 +1,7 @@
 name = "GraphQLGen"
 uuid = "e6c1444f-5479-4b7d-afd0-998686a721e1"
 authors = ["Dominique Luna <dluna132@gmail.com>"]
-version = "0.2.5"
+version = "0.3.0"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
