@@ -17,6 +17,14 @@ function get_schema_types(doc::Document)
     return schema_types
 end
 
+struct Config
+    root_abstract_type::Union{Nothing,Symbol}
+    scalar_type_map::Dict
+    to_skip::Set{Symbol}
+    schema_types::Dict{Symbol,Symbol}
+    graph::Dict{Symbol,Set{Symbol}}
+end
+
 function get_schema_types(sd::SchemaDefinition)
     schema_types = Dict{Symbol,Symbol}()
     for o in sd.operation_type_definitions
@@ -36,24 +44,27 @@ function tojl(
     doc::Document;
     scalar_type_map::Dict = Dict(),
     to_skip::Set{Symbol} = Set{Symbol}(),
+    root_abstract_type::Union{Nothing,Symbol} = nothing,
 )
     schema_types = get_schema_types(doc)
-    doc, revisited_graph = dagify(doc)
+    doc, graph = dagify(doc)
     types = Expr[]
     functions = Expr[]
 
+    config = Config(root_abstract_type, scalar_type_map, to_skip, schema_types, graph)
+
     for d in doc
-        getname(d) in to_skip && continue
+        getname(d) in config.to_skip && continue
 
         if d isa TypeDefinition &&
            d.type isa ObjectTypeDefinition &&
-           haskey(schema_types, jltype(d.type.name))
-            jlfuncs = jlfunction(d, schema_types, to_skip)
+           haskey(config.schema_types, jltype(d.type.name))
+            jlfuncs = jlfunction(d, config)
             for f in jlfuncs
                 push!(functions, f)
             end
         else
-            jlt = jltype(d, revisited_graph, scalar_type_map)
+            jlt = jltype(d, config)
             if !isnothing(jlt)
                 push!(types, jlt)
             end
@@ -65,18 +76,14 @@ end
 
 jltype(x) = nothing
 
-function jltype(
-    t::TypeDefinition,
-    revisited_graph::Dict{Symbol,Set{Symbol}},
-    scalar_type_map::Dict,
-)
+function jltype(t::TypeDefinition, config::Config)
     typ = t.type
     ex = if typ isa ScalarTypeDefinition
-        jltype(typ, scalar_type_map)
+        jltype(typ, config)
     elseif typ isa ObjectTypeDefinition
-        jltype(typ, revisited_graph)
+        jltype(typ, config)
     elseif typ isa InputObjectTypeDefinition
-        jltype(typ, revisited_graph)
+        jltype(typ, config)
     else
         jltype(typ)
     end
@@ -100,66 +107,64 @@ function jltype(
     return ex
 end
 
-function jltype(name::Symbol, fields::Vector{JLKwField}, graph::Dict{Symbol,Set{Symbol}})
-    ex = if haskey(graph, name)
-        get_property_expr = generate_getset!(fields, name, graph[name])
-        st = JLKwStruct(; ismutable = true, name = name, fields = fields)
+function jltype(name::Symbol, fields::Vector{JLKwField}, config::Config)
+    ex = if haskey(config.graph, name)
+        get_property_expr = generate_getset!(fields, name, config.graph[name])
+        st = JLKwStruct(;
+            ismutable = true,
+            name = name,
+            fields = fields,
+            supertype = config.root_abstract_type,
+        )
         quote
             $(codegen_ast(st))
-
-            StructTypes.StructType(::Type{$name}) = StructTypes.Mutable()
-
-            StructTypes.omitempties(::Type{$name}) = true
 
             $(codegen_ast(get_property_expr))
         end
     else
-        st = JLKwStruct(; ismutable = true, name = name, fields = fields)
+        st = JLKwStruct(;
+            ismutable = true,
+            name = name,
+            fields = fields,
+            supertype = config.root_abstract_type,
+        )
         quote
             $(codegen_ast(st))
-
-            StructTypes.StructType(::Type{$name}) = StructTypes.Mutable()
-            StructTypes.omitempties(::Type{$name}) = true
         end
     end
 
     return ex
 end
 
-function jltype(t::ObjectTypeDefinition, graph::Dict{Symbol,Set{Symbol}})
+function jltype(t::ObjectTypeDefinition, config::Config)
     name = jltype(t.name)
     fields = map(t.fields_definition) do fd
         jltype(fd)
     end
 
-    return jltype(name, fields, graph)
+    return jltype(name, fields, config)
 end
 
-jlfunction(t::TypeDefinition, schema_types::Dict{Symbol,Symbol}, to_skip::Set{Symbol}) =
-    jlfunction(t.type, schema_types, to_skip)
+jlfunction(t::TypeDefinition, config::Config) = jlfunction(t.type, config)
 
-function jlfunction(
-    t::ObjectTypeDefinition,
-    schema_types::Dict{Symbol,Symbol},
-    to_skip::Set{Symbol},
-)
+function jlfunction(t::ObjectTypeDefinition, config::Config)
     name = jltype(t.name)
     functions = Expr[]
     for fd in t.fields_definition
-        jltype(fd.name) in to_skip && continue
-        push!(functions, jlfunction(fd, schema_types[name]))
+        jltype(fd.name) in config.to_skip && continue
+        push!(functions, jlfunction(fd, config.schema_types[name]))
     end
 
     return functions
 end
 
-function jltype(t::InputObjectTypeDefinition, graph::Dict{Symbol,Set{Symbol}})
+function jltype(t::InputObjectTypeDefinition, config::Config)
     name = jltype(t.name)
     fields = map(t.fields) do f
         jltype(f)
     end
 
-    return jltype(name, fields, graph)
+    return jltype(name, fields, config)
 end
 
 function jltype(t::FieldDefinition)
@@ -340,9 +345,9 @@ function jltype(t::EnumValueDefinition)
     return ex
 end
 
-function jltype(t::ScalarTypeDefinition, scalar_type_map::Dict)
+function jltype(t::ScalarTypeDefinition, config::Config)
     name = jltype(t.name)
-    typ = get(scalar_type_map, name, Any)
+    typ = get(config.scalar_type_map, name, Any)
     return Expr(:const, Expr(:(=), name, typ))
 end
 
