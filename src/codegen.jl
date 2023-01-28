@@ -338,10 +338,12 @@ end
 
 function jltype(t::EnumValueDefinition)
     ex = jltype(t.value)
-    if !isnothing(something(t.description))
-        doc = jltype(t.description)
-        ex = :(Core.@doc $doc $ex)
-    end
+    # docstrings for enum values are not supported
+    # so these will be ignored
+    # if !isnothing(something(t.description))
+    #     doc = jltype(t.description)
+    #     ex = :(Core.@doc $doc $ex)
+    # end
     return ex
 end
 

@@ -157,16 +157,14 @@ function generate_from_schema(
 
     !isdir(dir) && mkdir(dir)
 
+    # module name cannot have '-'
+    # replace '-' with '_'
+    d = replace(d, '-' => '_')
+
     module_file_contents = """
     module $d
 
     """
-    if root_abstract_type !== nothing
-        module_file_contents *= """
-        abstract type $root_abstract_type end
-
-        """
-    end
 
     if generate_types
         module_file_contents *= """
@@ -176,6 +174,12 @@ function generate_from_schema(
         filename = joinpath(dir, types_filename)
         open("$filename", "w") do f
             write(f, generated_header)
+            if root_abstract_type !== nothing
+                write(f, """
+                abstract type $root_abstract_type end
+
+                    """)
+            end
             GraphQLGen.print(f, types)
         end
         @info "Generated Julia GraphQL types" path = filename
