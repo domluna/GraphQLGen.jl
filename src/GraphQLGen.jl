@@ -1,5 +1,8 @@
 module GraphQLGen
 
+# these names cannot be used as field names
+JL_KEYWORDS = ["end", "start", "struct", "type",]
+
 using Dates
 using RBNF
 using EnumX
