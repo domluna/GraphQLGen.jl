@@ -23,6 +23,7 @@ struct Config
     to_skip::Set{Symbol}
     schema_types::Dict{Symbol,Symbol}
     graph::Dict{Symbol,Set{Symbol}}
+    enums::Set{Symbol}
 end
 
 function get_schema_types(sd::SchemaDefinition)
@@ -51,7 +52,7 @@ function tojl(
     types = Expr[]
     functions = Expr[]
 
-    config = Config(root_abstract_type, scalar_type_map, to_skip, schema_types, graph)
+    config = Config(root_abstract_type, scalar_type_map, to_skip, schema_types, graph, Set{Symbol}())
 
     for d in doc
         getname(d) in config.to_skip && continue
@@ -64,11 +65,40 @@ function tojl(
                 push!(functions, f)
             end
         else
+            if d.type isa EnumTypeDefinition
+                push!(config.enums, jltype(d.type.name))
+            end
             jlt = jltype(d, config)
             if !isnothing(jlt)
                 push!(types, jlt)
             end
         end
+    end
+
+function is_enum(expr::Expr)
+        expr.head == :macrocall && expr.args[1] == Symbol("@enumx") && return true
+        expr.head == :macrocall && expr.args[1] == :(Core.var"@doc") && return is_enum(expr.args[end])
+        return false
+end
+is_enum(s::Symbol) = false    
+
+ sub = Substitute() do expr
+            if expr isa Symbol && expr in config.enums
+        return true
+        end
+           return false
+       end;
+
+    for i in 1:length(types)
+        types[i] = ExprPrettify.prettify(types[i])
+        if is_enum(types[i])
+            continue
+        end
+        types[i] = sub(x -> :($x.T), types[i])
+    end
+
+    for i in 1:length(functions)
+        functions[i] = ExprPrettify.prettify(functions[i])
     end
 
     return types, functions
@@ -329,7 +359,7 @@ function jltype(t::EnumTypeDefinition)
     name = jltype(t.name)
     enums = map(jltype, t.enums)
     ex = quote
-        @enum $name begin
+        @enumx $name begin
             $(enums...)
         end
     end

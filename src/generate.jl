@@ -178,6 +178,8 @@ function generate_from_schema(
                 write(f, """
                 abstract type $root_abstract_type end
 
+                using EnumX
+
                     """)
             end
             GraphQLGen.print(f, types)

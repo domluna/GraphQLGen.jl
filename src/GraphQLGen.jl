@@ -2,6 +2,7 @@ module GraphQLGen
 
 using Dates
 using RBNF
+using EnumX
 using Expronicon
 
 include("types.jl")
