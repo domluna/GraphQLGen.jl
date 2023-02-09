@@ -201,6 +201,10 @@ function jltype(t::FieldDefinition)
     name = jltype(t.name)
     typ = jltype(t.type)
 
+    if name in RESERVED_JL_KEYWORDS
+        name = Symbol(name, "_")
+    end
+
     kw = if !t.type.non_null
         JLKwField(; name = name, type = typ, default = :nothing)
     else
@@ -321,6 +325,10 @@ end
 function jltype(t::InputValueDefinition)
     name = jltype(t.name)
     typ = jltype(t.type)
+
+    if name in RESERVED_JL_KEYWORDS
+        name = Symbol(name, "_")
+    end
 
     kw = if !t.type.non_null
         JLKwField(; name = name, type = typ, default = jltype(t.default_value))

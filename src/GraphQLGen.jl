@@ -1,7 +1,6 @@
 module GraphQLGen
 
-# these names cannot be used as field names
-JL_KEYWORDS = ["end", "start", "struct", "type",]
+RESERVED_JL_KEYWORDS = [ :start, :baremodule, :begin, :break, :case, :const, :continue, :else, :elseif, :end, :export, Symbol("false"), :finally, :for, :function, :global, :if, :import, :in, :let, :local, :macro, :module, :nothing, :return, :struct, Symbol("true"), :try, :type, :using, :while, :do]
 
 using Dates
 using RBNF
