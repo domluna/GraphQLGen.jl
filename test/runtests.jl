@@ -68,6 +68,17 @@ using Pkg
         @test exprs[1] == :(const U = Union{U1,U2})
     end
 
+    @testset "interface" begin
+        str = """
+        interface RepositoryInfo {
+          createdAt: DateTime!
+        }
+        """
+        types, _ = GraphQLGen.tojl(GraphQLGen.parse(str))
+        exprs = map(GraphQLGen.ExprPrettify.prettify, types)
+        @test exprs[1].args[1].args[2] == :RepositoryInfo
+    end
+
     @testset "type fields" begin
         for t in [:type, :input]
             str = """
@@ -206,6 +217,19 @@ using Pkg
             end
         )
         @test f.body == GraphQLGen.ExprPrettify.prettify(body)
+
+        s = """
+        type C {
+           field1: B
+        }
+        type B {
+          field1: A
+        }
+        union A = C | B
+        """
+        types, _ = GraphQLGen.tojl(GraphQLGen.parse(s))
+        @test types[1].args[1].args[1] == :A
+        @test types[1].args[1].args[2] == :Any
     end
 
     @testset "functions" begin
