@@ -5,5 +5,9 @@ using GraphQLGen
 # The code fles are
 #  * graphqlgen_types.jl - contains all the GraphQL types
 #  * graphqlgen_functions.jl - contains all the GraphQL functions (mutations, queries, subscriptions)
-GraphQLGen.generate("$(@__DIR__)", "schema.docs.graphql", root_abstract_type = :OfficialGithubSchema)
+GraphQLGen.generate(
+    "$(@__DIR__)",
+    "schema.docs.graphql",
+    root_abstract_type = :OfficialGithubSchema,
+)
 # GraphQLGen.generate("$(@__DIR__)", "schema.graphql")
