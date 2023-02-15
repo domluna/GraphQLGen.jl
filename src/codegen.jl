@@ -52,7 +52,14 @@ function tojl(
     types = Expr[]
     functions = Expr[]
 
-    config = Config(root_abstract_type, scalar_type_map, to_skip, schema_types, graph, Set{Symbol}())
+    config = Config(
+        root_abstract_type,
+        scalar_type_map,
+        to_skip,
+        schema_types,
+        graph,
+        Set{Symbol}(),
+    )
 
     for d in doc
         getname(d) in config.to_skip && continue
@@ -75,19 +82,21 @@ function tojl(
         end
     end
 
-function is_enum(expr::Expr)
+    function is_enum(expr::Expr)
         expr.head == :macrocall && expr.args[1] == Symbol("@enumx") && return true
-        expr.head == :macrocall && expr.args[1] == :(Core.var"@doc") && return is_enum(expr.args[end])
+        expr.head == :macrocall &&
+            expr.args[1] == :(Core.var"@doc") &&
+            return is_enum(expr.args[end])
         return false
-end
-is_enum(s::Symbol) = false    
+    end
+    is_enum(s::Symbol) = false
 
- sub = Substitute() do expr
-            if expr isa Symbol && expr in config.enums
-        return true
+    sub = Substitute() do expr
+        if expr isa Symbol && expr in config.enums
+            return true
         end
-           return false
-       end;
+        return false
+    end
 
     for i in 1:length(types)
         types[i] = ExprPrettify.prettify(types[i])
@@ -104,19 +113,20 @@ is_enum(s::Symbol) = false
     return types, functions
 end
 
-jltype(x) = nothing
+jltype(_) = nothing
 
 function jltype(t::TypeDefinition, config::Config)
     typ = t.type
-    ex = if typ isa ScalarTypeDefinition
-        jltype(typ, config)
-    elseif typ isa ObjectTypeDefinition
-        jltype(typ, config)
-    elseif typ isa InputObjectTypeDefinition
-        jltype(typ, config)
-    else
-        jltype(typ)
-    end
+    ex =
+        if typ isa ScalarTypeDefinition ||
+           typ isa UnionTypeDefinition ||
+           typ isa ObjectTypeDefinition ||
+           typ isa InputObjectTypeDefinition ||
+           typ isa InterfaceTypeDefinition
+            jltype(typ, config)
+        else
+            jltype(typ)
+        end
 
     docstr = isnothing(something(t.description)) ? "" : jltype(t.description)
     docstr == "" && return ex
@@ -167,6 +177,15 @@ function jltype(name::Symbol, fields::Vector{JLKwField}, config::Config)
 end
 
 function jltype(t::ObjectTypeDefinition, config::Config)
+    name = jltype(t.name)
+    fields = map(t.fields_definition) do fd
+        jltype(fd)
+    end
+
+    return jltype(name, fields, config)
+end
+
+function jltype(t::InterfaceTypeDefinition, config::Config)
     name = jltype(t.name)
     fields = map(t.fields_definition) do fd
         jltype(fd)
@@ -354,12 +373,20 @@ function jlfunctionarg(t::InputValueDefinition)
     end
 end
 
-function jltype(t::UnionTypeDefinition)
+function jltype(t::UnionTypeDefinition, config::Config)
     name = jltype(t.name)
-    types = map(something(t.types)) do tt
-        jltype(tt.type)
+    cycle = haskey(config.graph, name)
+    if cycle
+        @warn "This union type was detected in a cycle. Forcing the type to be Any" name
     end
-    lhs = Expr(:curly, :Union, types...)
+    lhs = if cycle
+        lhs = :Any
+    else
+        types = map(something(t.types)) do tt
+            jltype(tt.type)
+        end
+        lhs = Expr(:curly, :Union, types...)
+    end
     return Expr(:const, Expr(:(=), name, lhs))
 end
 

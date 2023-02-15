@@ -175,12 +175,15 @@ function generate_from_schema(
         open("$filename", "w") do f
             write(f, generated_header)
             if root_abstract_type !== nothing
-                write(f, """
-                abstract type $root_abstract_type end
+                write(
+                    f,
+                    """
+           abstract type $root_abstract_type end
 
-                using EnumX
+           using EnumX
 
-                    """)
+               """,
+                )
             end
             GraphQLGen.print(f, types)
         end

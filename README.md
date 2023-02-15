@@ -2,6 +2,14 @@
 
 Generates Julia types and functions from GraphQL schema. See the [example](./example) for usage.
 
+There's also an example of the [official Github schema](./github-schema-example).
+
+**Caveats:**
+
+> NOTE !!! If you're using enum GraphQL types you will need to include [EnumX](https://github.com/fredrikekre/EnumX.jl) with your code. This is because the standard `@enum` macro does not allow for fields of an Enum to be redefined.
+
+> If an enum GraphQLtype is detected as part of a graph cyle it's type is renamed to Any to get around parsing errors. An assert check may be added in the future so that there is *some form* of type checking.
+
 ## API
 
 ```julia
