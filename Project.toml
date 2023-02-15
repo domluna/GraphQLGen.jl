@@ -1,15 +1,16 @@
 name = "GraphQLGen"
 uuid = "e6c1444f-5479-4b7d-afd0-998686a721e1"
 authors = ["Dominique Luna <dluna132@gmail.com>"]
-version = "0.3.0"
+version = "0.4.0"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+EnumX = "4e289a0a-7415-4d19-859d-a7e5c4648b56"
 Expronicon = "6b7a57c9-7cc1-4fdf-b7f5-e857abae3636"
 RBNF = "83ef0002-5b9e-11e9-219b-65bac3c6d69c"
 
 [compat]
-Expronicon = "0.6, 0.7"
+Expronicon = "0.8"
 RBNF = "0.2"
 julia = "1.6"
 

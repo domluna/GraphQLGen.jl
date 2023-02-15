@@ -11,6 +11,7 @@ function dagify(doc::Document)
         typ = d.type
         if typ isa ObjectTypeDefinition ||
            typ isa InputObjectTypeDefinition ||
+           typ isa InterfaceTypeDefinition ||
            typ isa UnionTypeDefinition
             n = node_id(d)
             g[n] = Set{Symbol}()
@@ -28,6 +29,7 @@ function dagify(doc::Document)
     end
 
     sorted_nodes, revisited_graph = topological_sort(g)
+
     for n in sorted_nodes
         id = get(node_ids, n, nothing)
         !isnothing(id) && push!(sorted_definitions, doc[id])
@@ -82,16 +84,19 @@ function visit!(
     end
 
     push!(temporary_nodes, node)
+    to_nodes = get(graph, node, nothing)
 
-    for n in get(graph, node, Symbol[])
-        visit!(
-            (node, n),
-            graph,
-            sorted_nodes,
-            visited_nodes,
-            temporary_nodes,
-            revisited_graph,
-        )
+    if to_nodes !== nothing
+        for n in to_nodes
+            visit!(
+                (node, n),
+                graph,
+                sorted_nodes,
+                visited_nodes,
+                temporary_nodes,
+                revisited_graph,
+            )
+        end
     end
 
     delete!(temporary_nodes, node)
@@ -105,6 +110,12 @@ collect_edges(t) = Symbol[]
 collect_edges(t::TypeDefinition) = collect_edges(t.type)
 
 function collect_edges(t::ObjectTypeDefinition)
+    map(t.fields_definition) do fd
+        node_id(fd)
+    end
+end
+
+function collect_edges(t::InterfaceTypeDefinition)
     map(t.fields_definition) do fd
         node_id(fd)
     end
@@ -125,6 +136,7 @@ end
 node_id(x::TypeDefinition) = node_id(x.type)
 node_id(x::ObjectTypeDefinition) = node_id(x.name)
 node_id(x::InputObjectTypeDefinition) = node_id(x.name)
+node_id(x::InterfaceTypeDefinition) = node_id(x.name)
 node_id(x::UnionTypeDefinition) = node_id(x.name)
 node_id(x::ScalarTypeDefinition) = node_id(x.name)
 node_id(x::EnumTypeDefinition) = node_id(x.name)

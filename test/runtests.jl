@@ -50,7 +50,7 @@ using Pkg
         types, _ = GraphQLGen.tojl(GraphQLGen.parse(str))
         exprs = map(GraphQLGen.ExprPrettify.prettify, types)
 
-        ret = :(@enum Episode begin
+        ret = :(@enumx Episode begin
             NEWHOPE
             EMPIRE
             JEDI
@@ -66,6 +66,17 @@ using Pkg
         types, _ = GraphQLGen.tojl(GraphQLGen.parse(str))
         exprs = map(GraphQLGen.ExprPrettify.prettify, types)
         @test exprs[1] == :(const U = Union{U1,U2})
+    end
+
+    @testset "interface" begin
+        str = """
+        interface RepositoryInfo {
+          createdAt: DateTime!
+        }
+        """
+        types, _ = GraphQLGen.tojl(GraphQLGen.parse(str))
+        exprs = map(GraphQLGen.ExprPrettify.prettify, types)
+        @test exprs[1].args[1].args[2] == :RepositoryInfo
     end
 
     @testset "type fields" begin
@@ -206,6 +217,19 @@ using Pkg
             end
         )
         @test f.body == GraphQLGen.ExprPrettify.prettify(body)
+
+        s = """
+        type C {
+           field1: B
+        }
+        type B {
+          field1: A
+        }
+        union A = C | B
+        """
+        types, _ = GraphQLGen.tojl(GraphQLGen.parse(s))
+        @test types[1].args[1].args[1] == :A
+        @test types[1].args[1].args[2] == :Any
     end
 
     @testset "functions" begin
@@ -304,9 +328,7 @@ using Pkg
 
             \"""Genre of a film.\"""
             enum Genre {
-              \"""An action film.\"""
               ACTION
-              \"""A comedy film.\"""
               COMEDY
             }
 
@@ -319,13 +341,11 @@ using Pkg
             @test exprs[1].args[3] == "The date a film was released."
 
             @test exprs[2].args[3] == "Genre of a film."
-            @test exprs[2].args[4].args[1] == Symbol("@enum")
+            @test exprs[2].args[4].args[1] == Symbol("@enumx")
             @test exprs[2].args[4].args[3] == :Genre
             fields = exprs[2].args[4].args[4]
-            @test fields.args[1].args[3] == "An action film."
-            @test fields.args[1].args[4] == :ACTION
-            @test fields.args[2].args[3] == "A comedy film."
-            @test fields.args[2].args[4] == :COMEDY
+            @test fields.args[1] == :ACTION
+            @test fields.args[2] == :COMEDY
 
             st = exprs[3].args[1]
             @test st.args[2] == :TelevisionSeries
@@ -333,7 +353,7 @@ using Pkg
             @test fields.args[1] == "Title of this tv show."
             @test fields.args[2] == :(title::Union{String,Missing,Nothing})
             @test fields.args[3] == "Genre of the tv show."
-            @test fields.args[4] == :(genre::Union{Genre,Missing,Nothing})
+            @test fields.args[4] == :(genre::Union{Genre.T,Missing,Nothing})
 
             @test exprs[4].args[1] == "\"\"\"\nA single film.\n\"\"\""
             st = exprs[4].args[2]
@@ -342,7 +362,7 @@ using Pkg
             @test fields.args[1] == "Title of this film."
             @test fields.args[2] == :(title::Union{String,Missing,Nothing})
             @test fields.args[3] == "Genre of the film."
-            @test fields.args[4] == :(genre::Union{Genre,Missing,Nothing})
+            @test fields.args[4] == :(genre::Union{Genre.T,Missing,Nothing})
 
             @test exprs[5].args[3] == "Filmed on camera."
 
@@ -353,7 +373,7 @@ using Pkg
             @test fields.args[1] == "The title of this film."
             @test fields.args[2] == :(title::String)
             @test fields.args[3] == "Genre of the film."
-            @test fields.args[4] == :(genre::Genre)
+            @test fields.args[4] == :(genre::Genre.T)
         end
 
         @testset "functions" begin

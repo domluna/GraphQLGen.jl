@@ -173,13 +173,10 @@ RBNF.@parser GQL begin
         ["extend", "type", name, implements_interfaces]
     )
 
-    # TODO: recursion
-    implements_interfaces = ["implements", '&'.?, type = named_type]
-
-    # implements_interfaces = (
-    #                          ["implements", '&'.?, named_type] |
-    #                          [implements_interfaces, '&', named_type]
-    #                         )
+    implements_interfaces = @direct_recur begin
+        init = [["implements", '&'.?, named_type] % (x -> x[3])]
+        prefix = [recur..., ('&', named_type) % (x -> x[2])]
+    end
 
     fields_definition::FieldsDefinition :=
         ['{', field_definitions = field_definition{*}, '}']
@@ -267,9 +264,10 @@ RBNF.@parser GQL begin
         directive_locations = directive_locations,
     ]
 
-    # TODO: recursion
-    directive_locations =
-        (['|'.?, directive_location] | [directive_locations, '|', directive_location])
+    directive_locations = @direct_recur begin
+        init = [['|'.?, directive_location] % (x -> x[2])]
+        prefix = [recur..., ('|', directive_location) % (x -> x[2])]
+    end
 
     directive_location = (executable_directive_location | type_system_directive_location)
 
@@ -286,7 +284,7 @@ RBNF.@parser GQL begin
         "SCHEMA" |
         "SCALAR" |
         "OBJECT" |
-        "FIELD_DESCRIPTION" |
+        "FIELD_DEFINITION" |
         "ARGUMENT_DEFINITION" |
         "INTERFACE" |
         "UNION" |

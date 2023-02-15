@@ -1,8 +1,7 @@
 function print(io::IO, ex::Expr)
-    ex = ExprPrettify.prettify(ex)
     if ex.head === :block
         for a in ex.args
-            if !isnothing(a)
+            if !isnothing(a) && a !== :nothing
                 println(io, a)
             end
         end

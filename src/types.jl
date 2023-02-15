@@ -252,6 +252,10 @@ function _force_any(x)
     end
 end
 
+function _force_any(x::Some{Vector{T}}) where {T}
+    return Vector{Any}(something(x))
+end
+
 function Base.convert(
     ::Type{Vector{Directive}},
     x::Some{T},
@@ -332,6 +336,14 @@ function Base.convert(
     return isnothing(s) ? NamedType[] : s
 end
 
+function Base.convert(
+    ::Type{Vector{ObjectField}},
+    x::Some{T},
+) where {T<:Union{Vector{Any},Nothing}}
+    s = something(x)
+    return isnothing(s) ? ObjectField[] : Vector{ObjectField}(s)
+end
+
 function Base.convert(::Type{Union{T,Nothing}}, x::Some{Nothing}) where {T<:GraphQLNode}
     nothing
 end
@@ -341,3 +353,6 @@ function Base.convert(::Type{Union{T,Nothing}}, x::Some{T}) where {T<:GraphQLNod
 end
 
 Base.convert(::Type{String}, ::Some{Nothing}) = ""
+
+# julia> GraphQLGen.parse(s0)
+# ERROR: MethodError: Cannot `convert` an object of type Some{Vector{Any}} to an object of type Vector{GraphQLGen.ObjectField}

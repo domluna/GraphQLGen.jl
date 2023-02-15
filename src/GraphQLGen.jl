@@ -1,7 +1,43 @@
 module GraphQLGen
 
+const RESERVED_JL_KEYWORDS = [
+    :start,
+    :baremodule,
+    :begin,
+    :break,
+    :case,
+    :const,
+    :continue,
+    :else,
+    :elseif,
+    :end,
+    :export,
+    Symbol("false"),
+    :finally,
+    :for,
+    :function,
+    :global,
+    :if,
+    :import,
+    :in,
+    :let,
+    :local,
+    :macro,
+    :module,
+    :nothing,
+    :return,
+    :struct,
+    Symbol("true"),
+    :try,
+    :type,
+    :using,
+    :while,
+    :do,
+]
+
 using Dates
 using RBNF
+using EnumX
 using Expronicon
 
 include("types.jl")
