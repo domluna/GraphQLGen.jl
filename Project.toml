@@ -12,6 +12,7 @@ RBNF = "83ef0002-5b9e-11e9-219b-65bac3c6d69c"
 [compat]
 Expronicon = "0.8"
 RBNF = "0.2"
+EnumX = "1.0"
 julia = "1.6"
 
 [extras]
